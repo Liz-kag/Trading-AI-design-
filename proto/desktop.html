@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>P2P Dispute – Desktop</title>
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, -apple-system, sans-serif;
+    background: #f6f7f8;
+    width: 1280px;
+    min-height: 800px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── App bar ── */
+  .app-bar {
+    height: 48px; background: #fff;
+    border-bottom: 1px solid #00000014;
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 16px;
+  }
+  .app-bar .brand { font-size: 16px; font-weight: 800; }
+  .brand-deriv { color: #ff444f; }
+  .brand-p2p { color: #181c25; }
+
+  /* ── Layout ── */
+  .layout { display: flex; height: calc(100vh - 48px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 256px; background: #fff;
+    border-right: 1px solid #00000014;
+    padding: 24px 16px;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-logo {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 8px; margin-bottom: 32px;
+  }
+  .sidebar-logo .brand { font-size: 18px; }
+  .notif-icon { width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; font-size:16px; color: #181c25; position:relative; }
+  .notif-dot { width:8px; height:8px; border-radius:50%; background:#ff444f; position:absolute; top:4px; right:4px; }
+  .nav-section { margin-bottom: 12px; }
+  .nav-label { font-size: 12px; color: #0000007a; padding: 0 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .divider { height: 1px; background: #00000014; margin: 12px 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 14px; color: #000000b8; cursor: pointer;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: #f6f7f8; }
+  .nav-item.active { color: #ff444f; background: #ff444f0a; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align:center; }
+  .sidebar-user {
+    margin-top: auto; display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #181c25; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .user-name { font-size: 14px; font-weight: 700; color: #181c25; }
+  .user-chevron { margin-left: auto; color: #0000007a; font-size: 12px; }
+
+  /* ── Main content ── */
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+  /* Hero */
+  .hero {
+    background: #181c25; padding: 24px 24px 0;
+  }
+  .hero-balance { margin-bottom: 20px; }
+  .hero-balance .balance-label { font-size: 12px; color: #ffffff7a; margin-bottom: 4px; }
+  .hero-balance .balance-amount { font-size: 24px; font-weight: 800; color: #fff; }
+  .hero-tabs { display: flex; align-items: center; justify-content: space-between; }
+  .tab-group { display: flex; gap: 24px; }
+  .tab { font-size: 16px; font-weight: 700; color: #ffffff7a; padding-bottom: 12px; cursor: pointer; }
+  .tab.active { color: #fff; border-bottom: 2px solid #ff444f; }
+  .currency-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 96px;
+    border: 1px solid #ffffff1f; background: #ffffff0a;
+    color: #ffffffb8; font-size: 14px; cursor: pointer;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    padding: 16px 24px; background: #fff;
+    border-bottom: 1px solid #00000014;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .chip {
+    padding: 6px 14px; border-radius: 96px;
+    border: 1px solid #00000014; background: #f6f7f8;
+    font-size: 14px; color: #000000b8; cursor: pointer;
+  }
+  .chip.active { background: #181c25; color: #fff; border-color: #181c25; }
+  .chip-dropdown {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 96px;
+    border: 1px solid #00000014; background: #fff;
+    font-size: 14px; color: #000000b8; cursor: pointer; margin-left: auto;
+  }
+
+  /* Orders table */
+  .orders-section { padding: 0 24px 24px; flex: 1; }
+  .table-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid #00000014;
+    font-size: 12px; color: #0000007a; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-top: 24px;
+  }
+  .order-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    padding: 16px;
+    border-bottom: 1px solid #00000014;
+    align-items: center;
+    background: #fff;
+  }
+  .order-row:first-of-type { border-radius: 8px 8px 0 0; border: 1px solid #00000014; }
+  .order-row:last-of-type  { border-radius: 0 0 8px 8px; }
+
+  .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; line-height: 20px; }
+  .tag-info    { background: #2c9aff14; color: #0777c4; }
+  .tag-warning { background: #ff9c1314; color: #c47d00; }
+  .tag-success { background: #00883214; color: #007a22; }
+  .tag-danger  { background: #ff444f14; color: #ff444f; }
+
+  .order-id { font-size: 12px; color: #0000007a; margin-top: 2px; }
+  .buy  { color: #00c390; }
+  .sell { color: #de0040; }
+  .text-highest { color: #181c25; font-weight: 700; }
+  .text-subtle  { color: #0000007a; font-size: 14px; }
+  .text-default { color: #000000b8; font-size: 14px; }
+
+  .btn-dispute-sm {
+    padding: 6px 16px; border-radius: 16px;
+    border: 1.5px solid #ff444f; background: transparent;
+    color: #ff444f; font-size: 13px; font-weight: 700;
+    font-family: Inter, sans-serif; cursor: pointer; white-space: nowrap;
+  }
+  .btn-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid #00000014; background: transparent;
+    cursor: pointer; font-size: 16px; color: #0000007a;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Modal overlay ── */
+  .overlay { position: fixed; inset: 0; background: #00000066; z-index: 50; }
+  .modal {
+    position: fixed;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 51; background: #fff;
+    border-radius: 16px; width: 480px;
+    max-height: 85vh; display: flex; flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 16px 48px #00000033;
+  }
+
+  /* Modal dark header */
+  .modal-header {
+    background: #181c25; padding: 20px 24px;
+    flex-shrink: 0;
+  }
+  .modal-title-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .modal-title { font-size: 20px; font-weight: 800; color: #fff; }
+  .close-btn { background:none; border:none; color:#ffffff7a; font-size:18px; cursor:pointer; }
+  .order-summary {
+    display:flex; align-items:center; gap:10px;
+    background:#ffffff0a; border-radius:8px; padding:10px 14px; margin-bottom:10px;
+  }
+  .summary-type  { font-size:16px; font-weight:700; }
+  .summary-amount { font-size:16px; font-weight:700; color:#fff; }
+  .summary-id    { font-size:12px; color:#ffffff7a; margin-left:auto; }
+  .order-sub     { font-size:14px; color:#ffffff7a; margin-bottom:10px; }
+  .order-sub b   { color:#ffffffb8; }
+
+  /* Modal body */
+  .modal-body { flex:1; overflow-y:auto; padding:20px 24px; }
+  .section-label { font-size:14px; font-weight:700; color:#181c25; margin-bottom:14px; }
+  .reason-list { display:flex; flex-direction:column; gap:8px; }
+  .reason-option {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:12px 14px; border-radius:8px;
+    border:1.5px solid #00000014; background:#f6f7f8; cursor:pointer;
+  }
+  .reason-option.selected { border-color:#ff444f; background:#ff444f0a; }
+  .radio {
+    flex-shrink:0; width:18px; height:18px; border-radius:50%;
+    border:2px solid #0000001f; margin-top:2px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .radio.checked { border-color:#ff444f; background:#ff444f; }
+  .radio.checked::after { content:''; width:6px; height:6px; border-radius:50%; background:#fff; display:block; }
+  .reason-label { font-size:14px; font-weight:700; color:#181c25; }
+  .reason-desc  { font-size:12px; color:#0000007a; margin-top:2px; }
+  .field-label { font-size:14px; font-weight:700; color:#181c25; margin:18px 0 8px; }
+  textarea {
+    width:100%; padding:10px 12px; border-radius:8px;
+    border:1px solid #00000014; background:#00000008;
+    font-size:14px; line-height:20px; font-family:Inter,sans-serif;
+    color:#000000b8; resize:none; outline:none;
+  }
+  textarea::placeholder { color:#0000004d; }
+  .field-hint { font-size:12px; color:#0000007a; margin-top:6px; }
+
+  /* Modal footer */
+  .modal-footer {
+    padding:16px 24px; border-top:1px solid #00000014;
+    display:flex; gap:12px; flex-shrink:0; background:#fff;
+  }
+  .btn-cancel {
+    flex:1; height:48px; border-radius:24px;
+    border:1px solid #0000001f; background:transparent;
+    color:#181c25; font-size:16px; font-weight:700;
+    font-family:Inter,sans-serif; cursor:pointer;
+  }
+  .btn-submit {
+    flex:1; height:48px; border-radius:24px;
+    border:none; background:#ff444f; color:#fff;
+    font-size:16px; font-weight:700;
+    font-family:Inter,sans-serif; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- App bar -->
+<div class="app-bar">
+  <span class="brand"><span class="brand-deriv">deriv</span><span class="brand-p2p">P2P</span></span>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="brand"><span class="brand-deriv">deriv</span><span class="brand-p2p">P2P</span></span>
+      <div class="notif-icon">🔔<div class="notif-dot"></div></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-item"><span class="icon">⌂</span> Home</div>
+      <div class="nav-item active"><span class="icon">≡</span> Orders</div>
+      <div class="nav-item"><span class="icon">Ad</span> My ads</div>
+      <div class="nav-item"><span class="icon">◎</span> Wallet</div>
+      <div class="nav-item"><span class="icon">👤</span> Profile</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-item"><span class="icon">?</span> P2P help centre</div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">MF</div>
+      <div class="user-name">Mohammad Farid</div>
+      <span class="user-chevron">›</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-balance">
+        <div class="balance-label">Est. total value</div>
+        <div class="balance-amount">0.00 USD</div>
+      </div>
+      <div class="hero-tabs">
+        <div class="tab-group">
+          <div class="tab active">Active</div>
+          <div class="tab">Past</div>
+        </div>
+        <div class="currency-chip">🇮🇩 IDR ⌄</div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="chip active">All</div>
+      <div class="chip">Buy</div>
+      <div class="chip">Sell</div>
+      <div class="chip-dropdown">⛉ Filter ⌄</div>
+    </div>
+
+    <!-- Orders -->
+    <div class="orders-section">
+      <div style="background:#fff; border:1px solid #00000014; border-radius:8px; overflow:hidden; margin-top:24px;">
+
+        <!-- Header row -->
+        <div style="display:grid; grid-template-columns:2fr 1.5fr 1.5fr 1fr 120px; padding:10px 16px; border-bottom:1px solid #00000014;">
+          <span style="font-size:12px;color:#0000007a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Order</span>
+          <span style="font-size:12px;color:#0000007a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Amount</span>
+          <span style="font-size:12px;color:#0000007a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Counterparty</span>
+          <span style="font-size:12px;color:#0000007a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Status</span>
+          <span></span>
+        </div>
+
+        <!-- Row 1 -->
+        <div style="display:grid; grid-template-columns:2fr 1.5fr 1.5fr 1fr 120px; padding:16px; border-bottom:1px solid #00000014; align-items:center;">
+          <div>
+            <span class="tag tag-info" style="margin-bottom:4px;display:inline-block;">Complete payment</span><br>
+            <span style="font-size:12px;color:#0000007a;">ID: 0987329 · 00:59:59</span>
+          </div>
+          <div>
+            <span class="buy" style="font-weight:700;">Buy </span>
+            <span class="text-highest">5.00 USD</span><br>
+            <span class="text-subtle">83,833.75 IDR</span>
+          </div>
+          <div class="text-default">Farid07</div>
+          <div><span class="tag tag-info">Active</span></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn-icon">💬</button>
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div style="display:grid; grid-template-columns:2fr 1.5fr 1.5fr 1fr 120px; padding:16px; border-bottom:1px solid #00000014; align-items:center;">
+          <div>
+            <span class="tag tag-info" style="margin-bottom:4px;display:inline-block;">Confirm payment</span><br>
+            <span style="font-size:12px;color:#0000007a;">ID: 12345678 · 00:20:59</span>
+          </div>
+          <div>
+            <span class="sell" style="font-weight:700;">Sell </span>
+            <span class="text-highest">5.00 USD</span><br>
+            <span class="text-subtle">14,500.00 IDR</span>
+          </div>
+          <div class="text-default">Jackson</div>
+          <div><span class="tag tag-info">Active</span></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn-icon">💬</button>
+          </div>
+        </div>
+
+        <!-- Row 3 – dispute eligible, highlighted -->
+        <div style="display:grid; grid-template-columns:2fr 1.5fr 1.5fr 1fr 120px; padding:16px; align-items:center; background:#ff444f05; border-left:3px solid #ff444f;">
+          <div>
+            <span class="tag tag-warning" style="margin-bottom:4px;display:inline-block;">Waiting confirmation</span><br>
+            <span style="font-size:12px;color:#0000007a;">ID: 1270078 · 00:00:30</span>
+          </div>
+          <div>
+            <span class="buy" style="font-weight:700;">Buy </span>
+            <span class="text-highest">5.00 USD</span><br>
+            <span class="text-subtle">443.87 INR</span>
+          </div>
+          <div class="text-default">Rahul12</div>
+          <div><span class="tag tag-danger">Dispute eligible</span></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn-dispute-sm">Raise Dispute</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay"></div>
+
+<!-- Desktop modal -->
+<div class="modal">
+  <div class="modal-header">
+    <div class="modal-title-row">
+      <span class="modal-title">Raise a Dispute</span>
+      <button class="close-btn">✕</button>
+    </div>
+    <div class="order-summary">
+      <span class="summary-type buy">Buy</span>
+      <span class="summary-amount">5.00 USD</span>
+      <span class="summary-id">ID: 1270078</span>
+    </div>
+    <div class="order-sub">You pay: <b>443.87 INR</b> · Counterparty: <b>Rahul12</b></div>
+    <span class="tag tag-warning">Under Dispute</span>
+  </div>
+
+  <div class="modal-body">
+    <div class="section-label">What is your reason for raising a dispute?</div>
+    <div class="reason-list">
+      <div class="reason-option selected">
+        <div class="radio checked"></div>
+        <div>
+          <div class="reason-label">Seller didn't release crypto</div>
+          <div class="reason-desc">I've made the payment but seller hasn't released the funds</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Payment not received</div>
+          <div class="reason-desc">I haven't received the payment from the buyer</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Wrong payment amount</div>
+          <div class="reason-desc">The amount paid doesn't match the agreed order amount</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Other</div>
+          <div class="reason-desc">Describe your issue in the field below</div>
+        </div>
+      </div>
+    </div>
+    <div class="field-label">Additional details <span style="font-weight:400;color:#0000007a;">(optional)</span></div>
+    <textarea rows="3" placeholder="Describe the issue in detail…"></textarea>
+    <div class="field-hint">Your dispute will be reviewed by our P2P team within 24 hours.</div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn-cancel">Cancel</button>
+    <button class="btn-submit">Raise Dispute</button>
+  </div>
+</div>
+
+</body>
+</html>

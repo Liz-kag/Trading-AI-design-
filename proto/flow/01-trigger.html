@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Step 1 – Dispute Trigger</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  body { width:1400px; min-height:900px; padding:40px; background:#f6f7f8; }
+  .page-header { display:flex; align-items:center; gap:14px; margin-bottom:32px; }
+  .step-num { width:40px; height:40px; border-radius:50%; background:var(--coral); color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .page-title { font-size:24px; font-weight:800; color:var(--textHi); }
+  .page-sub { font-size:14px; color:var(--textSub); margin-top:2px; }
+
+  .row { display:flex; gap:32px; align-items:flex-start; }
+
+  /* Phone frame */
+  .phone { width:390px; background:var(--dark); border-radius:40px; overflow:hidden; box-shadow:0 24px 64px #00000033; flex-shrink:0;
+    border:8px solid #0d1017; }
+  .phone-screen { background:#f6f7f8; }
+
+  .order-list { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+
+  /* Normal card */
+  .card-normal { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+
+  /* Dispute card */
+  .card-dispute {
+    background:#fff;
+    border:1.5px solid var(--coral);
+    border-radius:8px; padding:12px 14px;
+    box-shadow:0 0 0 4px #ff444f18;
+    position:relative;
+  }
+  .pulse-ring {
+    position:absolute; top:-6px; right:-6px;
+    width:16px; height:16px; border-radius:50%;
+    background:var(--coral);
+    box-shadow:0 0 0 4px #ff444f44;
+  }
+
+  /* Annotation sidebar */
+  .annotations { flex:1; display:flex; flex-direction:column; gap:20px; padding-top:8px; }
+  .ann-card { background:#fff; border-radius:12px; border:1px solid var(--border); padding:18px 20px; }
+  .ann-title { font-size:13px; font-weight:700; color:var(--textHi); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .ann-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .ann-row:last-child { border:none; padding-bottom:0; }
+  .ann-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .ann-text { font-size:13px; color:var(--textDef); line-height:1.5; }
+  .ann-text b { color:var(--textHi); }
+
+  .condition-box { background:var(--frame); border-radius:8px; padding:12px 14px; font-size:12px; font-family:monospace; color:var(--textDef); line-height:1.8; }
+  .cond-if   { color:#0777c4; font-weight:700; }
+  .cond-val  { color:var(--coral); font-weight:700; }
+  .cond-key  { color:#007a22; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="step-num">1</div>
+  <div>
+    <div class="page-title">Dispute Trigger — UI Logic</div>
+    <div class="page-sub">Order timer expires → system unlocks the dispute CTA on the active order card</div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Phone -->
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="status-bar">
+        <span class="time">16:20</span>
+        <div class="icons"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="app-header">
+        <div class="tab-row">
+          <div class="tab active">Active</div>
+          <div class="tab">Past</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px 0; display:flex; justify-content:flex-end;">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:96px;border:1px solid var(--border);background:#fff;font-size:13px;color:var(--textDef);">⛉ Filter ⌄</div>
+      </div>
+
+      <div class="order-list">
+        <!-- Normal card 1 -->
+        <div class="card-normal">
+          <div class="card-top">
+            <span class="tag tag-info">Complete payment</span>
+            <span class="timer">00:59:59</span>
+          </div>
+          <div class="order-amount"><span class="buy">Buy </span><span class="amount-val">5.00 USD</span></div>
+          <div class="order-meta">You pay: 83,833.75 IDR</div>
+          <div class="order-footer"><span class="counterparty">Farid07</span><span style="color:var(--textSub);">💬</span></div>
+        </div>
+
+        <!-- Normal card 2 -->
+        <div class="card-normal">
+          <div class="card-top">
+            <span class="tag tag-info">Confirm payment</span>
+            <span class="timer">00:20:59</span>
+          </div>
+          <div class="order-amount"><span class="sell">Sell </span><span class="amount-val">5.00 USD</span></div>
+          <div class="order-meta">You receive: 14,500.00 IDR</div>
+          <div class="order-footer"><span class="counterparty">Jackson</span><span style="color:var(--textSub);">💬</span></div>
+        </div>
+
+        <!-- Dispute card -->
+        <div class="card-dispute">
+          <div class="pulse-ring"></div>
+          <div class="card-top">
+            <span class="tag tag-warn">Waiting seller's confirmation</span>
+            <span class="timer expired">00:00:00</span>
+          </div>
+          <div class="order-amount"><span class="buy">Buy </span><span class="amount-val">5.00 USD</span></div>
+          <div class="order-meta">You pay: 443.87 INR</div>
+          <div class="order-footer"><span class="counterparty">Rahul12</span><span style="color:var(--textSub);">💬</span></div>
+          <button class="btn-outline-coral" style="width:100%;margin-top:10px;">⚑ Raise a Dispute</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></div>
+        <div style="width:1px;height:32px;background:var(--border);"></div>
+        <div class="nav-item"><span class="nav-icon">⇅</span><span class="nav-label">Market</span></div>
+        <div class="nav-item active"><span class="nav-icon">≡</span><span class="nav-label">Orders</span></div>
+        <div class="nav-item"><span class="nav-icon">Ad</span><span class="nav-label">My ads</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotations -->
+  <div class="annotations">
+
+    <!-- Trigger condition -->
+    <div class="ann-card">
+      <div class="ann-title"><span class="step-badge" style="width:22px;height:22px;font-size:11px;">①</span> Trigger Condition</div>
+      <div class="condition-box">
+        <span class="cond-if">if</span> (order.<span class="cond-key">status</span> === <span class="cond-val">"waiting_seller"</span><br>
+        &nbsp;&nbsp;&amp;&amp; order.<span class="cond-key">timer</span> === <span class="cond-val">0</span>) {<br>
+        &nbsp;&nbsp;showDisputeButton(<span class="cond-val">true</span>)<br>
+        &nbsp;&nbsp;highlightCard(<span class="cond-val">"coral"</span>)<br>
+        }
+      </div>
+    </div>
+
+    <!-- What changes in the UI -->
+    <div class="ann-card">
+      <div class="ann-title"><span class="step-badge" style="width:22px;height:22px;font-size:11px;">②</span> UI Changes on Timer Expiry</div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text">Timer label turns <b>coral red</b> and shows <b>00:00:00</b></div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text">Order card gets a <b>coral border + glow ring</b> to draw attention</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text"><b>Raise a Dispute</b> button appears (coral outline, full width)</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:#2c9aff;"></div>
+        <div class="ann-text">Other cards remain unchanged — normal interaction</div>
+      </div>
+    </div>
+
+    <!-- Order states -->
+    <div class="ann-card">
+      <div class="ann-title"><span class="step-badge" style="width:22px;height:22px;font-size:11px;">③</span> Order States That Allow Dispute</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+        <span class="tag tag-warn">Waiting seller's confirmation</span>
+        <span class="tag tag-info">Confirm payment (buyer)</span>
+        <span class="tag tag-dang">Timer expired</span>
+      </div>
+      <p style="font-size:12px;color:var(--textSub);margin-top:10px;">Only orders where one party has not acted within the time window are dispute-eligible.</p>
+    </div>
+
+    <!-- Entrypoints -->
+    <div class="ann-card" style="border-color:var(--coral);">
+      <div class="ann-title" style="color:var(--coral);">⚑ &nbsp;Dispute Entry Points</div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text"><b>Order card CTA</b> — "Raise a Dispute" button (this screen)</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text"><b>Order detail page</b> — same button in the order chat/detail view</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--textSub);"></div>
+        <div class="ann-text"><b>Live chat</b> — user types "/dispute" or taps dispute icon in chat</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Step 3 – Backend API + System Ticket</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  body { width:1400px; min-height:960px; padding:40px; background:#f6f7f8; }
+  .page-header { display:flex; align-items:center; gap:14px; margin-bottom:32px; }
+  .step-num { width:40px; height:40px; border-radius:50%; background:var(--coral); color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .page-title { font-size:24px; font-weight:800; color:var(--textHi); }
+  .page-sub { font-size:14px; color:var(--textSub); margin-top:2px; }
+
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .col { display:flex; flex-direction:column; gap:18px; }
+
+  .panel { background:#fff; border-radius:12px; border:1px solid var(--border); padding:20px 22px; }
+  .panel-dark { background:var(--dark); border-radius:12px; padding:20px 22px; }
+  .panel-title { font-size:14px; font-weight:800; color:var(--textHi); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .panel-title-light { font-size:14px; font-weight:800; color:#fff; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+  /* API call viz */
+  .api-method { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; background:var(--dark); border-radius:6px; font-family:monospace; font-size:13px; color:#fff; margin-bottom:12px; }
+  .method-badge { padding:2px 8px; border-radius:4px; font-size:11px; font-weight:800; }
+  .method-post { background:#2c9aff; }
+  .endpoint-text { color:#ffffffb8; }
+
+  pre.payload {
+    background:#0d1017; border-radius:8px; padding:14px 16px;
+    font-family:monospace; font-size:12px; line-height:1.8;
+    color:#ffffffb8; white-space:pre; overflow:hidden;
+  }
+  .k { color:#2c9aff; }
+  .v { color:#ff9c13; }
+  .n { color:#00c390; }
+
+  /* Response */
+  pre.response {
+    background:#00883214; border:1px solid #00883240; border-radius:8px;
+    padding:14px 16px; font-family:monospace; font-size:12px; line-height:1.8;
+    color:#007a22; white-space:pre; overflow:hidden;
+  }
+
+  /* Ticket card */
+  .ticket { background:var(--frame); border-radius:10px; padding:16px 18px; border:1.5px solid var(--border); }
+  .ticket-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .ticket-id { font-size:13px; font-weight:800; color:var(--textHi); font-family:monospace; }
+  .ticket-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .ticket-row:last-child { border:none; }
+  .ticket-key { color:var(--textSub); }
+  .ticket-val { color:var(--textHi); font-weight:600; }
+
+  /* Flow arrows */
+  .flow-row { display:flex; align-items:center; gap:0; margin:16px 0; }
+  .flow-box { flex:1; background:var(--frame); border-radius:8px; padding:10px 12px; text-align:center; font-size:12px; font-weight:700; color:var(--textHi); border:1px solid var(--border); }
+  .flow-box.active { background:#ff444f0a; border-color:var(--coral); color:var(--coral); }
+  .flow-arrow { padding:0 6px; color:var(--coral); font-size:16px; }
+
+  /* Notification items */
+  .notif-item { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .notif-item:last-child { border:none; }
+  .notif-icon-wrap { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .notif-title { font-size:13px; font-weight:700; color:var(--textHi); }
+  .notif-desc  { font-size:12px; color:var(--textSub); margin-top:2px; }
+  .notif-status { font-size:11px; font-weight:700; padding:2px 8px; border-radius:96px; }
+  .sent    { background:var(--tagSuccBg); color:var(--tagSuccTx); }
+  .queued  { background:var(--tagInfoBg); color:var(--tagInfoTx); }
+  .pending { background:var(--tagWarnBg); color:var(--tagWarnTx); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="step-num">3</div>
+  <div>
+    <div class="page-title">Backend Initiation — API Call + System Ticket</div>
+    <div class="page-sub">On submit: POST to disputes API → system ticket created → notifications dispatched</div>
+  </div>
+</div>
+
+<!-- Flow bar -->
+<div class="flow-row">
+  <div class="flow-box">① User taps Submit</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box active">② POST /dispute</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">③ Ticket Created</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">④ OCR + Matching</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">⑤ Notifications Sent</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">⑥ Moderator Review</div>
+</div>
+
+<div class="cols">
+  <!-- Left col -->
+  <div class="col">
+
+    <!-- API Call -->
+    <div class="panel">
+      <div class="panel-title">① API Request — Dispute Initiation</div>
+      <div class="api-method">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-text">/v1/p2p/order/dispute/create</span>
+      </div>
+      <pre class="payload">{
+  <span class="k">"order_id"</span>:    <span class="v">"1270078"</span>,
+  <span class="k">"reason"</span>:      <span class="v">"seller_no_release"</span>,
+  <span class="k">"description"</span>: <span class="v">"I transferred full amount
+                  on 4 Mar 16:18 IST..."</span>,
+  <span class="k">"evidence"</span>: [
+    {
+      <span class="k">"file_id"</span>:  <span class="v">"file_abc123"</span>,
+      <span class="k">"type"</span>:     <span class="v">"receipt"</span>,
+      <span class="k">"ocr_done"</span>: <span class="n">true</span>
+    }
+  ],
+  <span class="k">"initiated_by"</span>: <span class="v">"buyer"</span>,
+  <span class="k">"timestamp"</span>:    <span class="v">"2026-03-04T16:20:00Z"</span>
+}</pre>
+    </div>
+
+    <!-- API Response -->
+    <div class="panel">
+      <div class="panel-title" style="color:var(--buy);">② API Response — 201 Created</div>
+      <pre class="response">{
+  "status":      "created",
+  "dispute_id":  "DSP-2026-001270078",
+  "ticket_id":   "TKT-89421",
+  "order_status":"under_dispute",
+  "sla_deadline":"2026-03-05T16:20:00Z",
+  "triage_score": 0.87,
+  "risk_level":  "high",
+  "message": "Dispute submitted. You will be
+              contacted within 24 hours."
+}</pre>
+    </div>
+
+  </div>
+
+  <!-- Right col -->
+  <div class="col">
+
+    <!-- System Ticket -->
+    <div class="panel" style="border-color:#2c9aff;">
+      <div class="panel-title">📋 System-Generated Ticket — TKT-89421</div>
+      <div class="ticket">
+        <div class="ticket-header">
+          <span class="ticket-id">TKT-89421</span>
+          <span class="tag tag-warn">Under Review</span>
+        </div>
+        <div class="ticket-row"><span class="ticket-key">Dispute ID</span><span class="ticket-val">DSP-2026-001270078</span></div>
+        <div class="ticket-row"><span class="ticket-key">Order ID</span><span class="ticket-val">#1270078</span></div>
+        <div class="ticket-row"><span class="ticket-key">Initiated by</span><span class="ticket-val">Buyer — user_7821</span></div>
+        <div class="ticket-row"><span class="ticket-key">Counterparty</span><span class="ticket-val">Rahul12 — user_3340</span></div>
+        <div class="ticket-row"><span class="ticket-key">Amount</span><span class="ticket-val">5.00 USD / 443.87 INR</span></div>
+        <div class="ticket-row"><span class="ticket-key">Reason</span><span class="ticket-val">Seller didn't release crypto</span></div>
+        <div class="ticket-row"><span class="ticket-key">Evidence</span><span class="ticket-val">1 file · OCR ✓</span></div>
+        <div class="ticket-row"><span class="ticket-key">Triage score</span><span class="ticket-val" style="color:var(--coral);">0.87 — High risk</span></div>
+        <div class="ticket-row"><span class="ticket-key">SLA deadline</span><span class="ticket-val">2026-03-05 16:20 UTC</span></div>
+        <div class="ticket-row"><span class="ticket-key">Assigned to</span><span class="ticket-val">P2P Disputes Team</span></div>
+      </div>
+    </div>
+
+    <!-- Notifications dispatched -->
+    <div class="panel">
+      <div class="panel-title">🔔 Notifications Dispatched</div>
+      <div class="notif-item">
+        <div class="notif-icon-wrap" style="background:#2c9aff14;">📧</div>
+        <div style="flex:1;">
+          <div class="notif-title">Email → Buyer (user_7821)</div>
+          <div class="notif-desc">"Your dispute has been submitted — ref TKT-89421"</div>
+        </div>
+        <span class="notif-status sent">Sent</span>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon-wrap" style="background:#ff9c1314;">📧</div>
+        <div style="flex:1;">
+          <div class="notif-title">Email → Seller (Rahul12)</div>
+          <div class="notif-desc">"A dispute has been raised on order #1270078. Respond within 24 hrs."</div>
+        </div>
+        <span class="notif-status sent">Sent</span>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon-wrap" style="background:var(--tagSuccBg);">📲</div>
+        <div style="flex:1;">
+          <div class="notif-title">Push → Buyer (in-app)</div>
+          <div class="notif-desc">Toast: "Dispute raised successfully · TKT-89421"</div>
+        </div>
+        <span class="notif-status sent">Sent</span>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon-wrap" style="background:var(--tagWarnBg);">👥</div>
+        <div style="flex:1;">
+          <div class="notif-title">Internal → P2P Disputes Team</div>
+          <div class="notif-desc">Slack + dashboard alert — HIGH priority triage score 0.87</div>
+        </div>
+        <span class="notif-status queued">Queued</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

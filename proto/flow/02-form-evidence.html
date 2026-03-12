@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Step 2 – Form + Evidence Collection</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  body { width:1400px; min-height:960px; padding:40px; background:#f6f7f8; }
+  .page-header { display:flex; align-items:center; gap:14px; margin-bottom:32px; }
+  .step-num { width:40px; height:40px; border-radius:50%; background:var(--coral); color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .page-title { font-size:24px; font-weight:800; color:var(--textHi); }
+  .page-sub { font-size:14px; color:var(--textSub); margin-top:2px; }
+  .row { display:flex; gap:32px; align-items:flex-start; }
+  .phone { width:390px; background:#0d1017; border-radius:40px; overflow:hidden; box-shadow:0 24px 64px #00000033; flex-shrink:0; border:8px solid #0d1017; }
+
+  .bottom-sheet { background:#fff; border-radius:16px 16px 0 0; }
+  .sheet-body { padding:18px 20px; }
+  .section-label { font-size:13px; font-weight:700; color:var(--textHi); margin-bottom:10px; }
+  .reason-list { display:flex; flex-direction:column; gap:7px; margin-bottom:16px; }
+
+  /* Upload zone */
+  .upload-zone {
+    border:1.5px dashed var(--coral); border-radius:8px;
+    padding:16px; text-align:center; background:#ff444f06;
+    cursor:pointer;
+  }
+  .upload-icon { font-size:24px; margin-bottom:6px; }
+  .upload-title { font-size:13px; font-weight:700; color:var(--coral); }
+  .upload-sub { font-size:11px; color:var(--textSub); margin-top:2px; }
+
+  /* Uploaded files list */
+  .file-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--frame); border-radius:8px; margin-top:6px; }
+  .file-icon { font-size:20px; }
+  .file-name { font-size:13px; font-weight:600; color:var(--textHi); flex:1; }
+  .file-size { font-size:11px; color:var(--textSub); }
+  .file-check { color:var(--buy); font-size:16px; }
+
+  .sheet-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:10px; background:#fff; }
+  .btn-cancel-sm { flex:1; height:44px; border-radius:22px; border:1px solid var(--borderMid); background:transparent; color:var(--textHi); font-size:15px; font-weight:700; font-family:Inter,sans-serif; cursor:pointer; }
+  .btn-submit-sm { flex:1; height:44px; border-radius:22px; border:none; background:var(--coral); color:#fff; font-size:15px; font-weight:800; font-family:Inter,sans-serif; cursor:pointer; }
+
+  /* Annotations */
+  .annotations { flex:1; display:flex; flex-direction:column; gap:18px; }
+  .ann-card { background:#fff; border-radius:12px; border:1px solid var(--border); padding:18px 20px; }
+  .ann-title { font-size:13px; font-weight:700; color:var(--textHi); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .ann-row { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
+  .ann-row:last-child { border:none; padding-bottom:0; }
+  .ann-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .ann-text { font-size:13px; color:var(--textDef); line-height:1.5; }
+  .ann-text b { color:var(--textHi); }
+
+  /* Evidence types grid */
+  .evidence-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .ev-item { background:var(--frame); border-radius:8px; padding:10px 12px; }
+  .ev-icon { font-size:18px; margin-bottom:4px; }
+  .ev-label { font-size:12px; font-weight:700; color:var(--textHi); }
+  .ev-desc  { font-size:11px; color:var(--textSub); margin-top:2px; }
+
+  /* OCR preview badge */
+  .ocr-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:96px; background:var(--tagInfoBg); color:var(--tagInfoTx); font-size:11px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="step-num">2</div>
+  <div>
+    <div class="page-title">Evidence Collection Flow</div>
+    <div class="page-sub">User fills dispute form and uploads evidence — OCR scan triggered on upload</div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Phone -->
+  <div class="phone">
+    <div style="background:#f6f7f8;">
+
+      <!-- Dim background (orders list visible under sheet) -->
+      <div style="background:var(--dark); padding:12px 24px 0;">
+        <div class="tab-row"><div class="tab active">Active</div><div class="tab">Past</div></div>
+      </div>
+      <div style="padding:10px 16px; opacity:.35; pointer-events:none;">
+        <div class="card-normal" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <div style="display:flex;justify-content:space-between;"><span class="tag tag-warn">Waiting confirmation</span><span class="timer expired">00:00:00</span></div>
+          <div style="font-size:14px;font-weight:700;color:var(--textHi);margin-top:6px;">Buy 5.00 USD · ID: 1270078</div>
+        </div>
+      </div>
+
+      <!-- Overlay -->
+      <div style="position:absolute;inset:0;background:#00000055;z-index:5;border-radius:32px;"></div>
+
+      <!-- Bottom sheet -->
+      <div style="position:relative;z-index:10;">
+        <div class="bottom-sheet">
+          <div class="handle-bar-wrap"><div class="handle-bar"></div></div>
+          <div class="sheet-header">
+            <div class="sheet-title-row">
+              <span class="sheet-title">Raise a Dispute</span>
+              <button class="close-btn">✕</button>
+            </div>
+            <div class="order-summary">
+              <span class="summary-type buy">Buy</span>
+              <span class="summary-amount">5.00 USD</span>
+              <span class="summary-id">ID: 1270078</span>
+            </div>
+            <div class="order-sub">You pay: <b>443.87 INR</b> · Counterparty: <b>Rahul12</b></div>
+            <span class="tag tag-warn">Under Dispute</span>
+          </div>
+
+          <div class="sheet-body">
+            <div class="section-label">Select reason</div>
+            <div class="reason-list">
+              <div class="reason-option selected">
+                <div class="radio checked"></div>
+                <div><div class="reason-label">Seller didn't release crypto</div><div class="reason-desc">I've paid but seller hasn't released</div></div>
+              </div>
+              <div class="reason-option">
+                <div class="radio"></div>
+                <div><div class="reason-label">Payment not received</div></div>
+              </div>
+              <div class="reason-option">
+                <div class="radio"></div>
+                <div><div class="reason-label">Wrong payment amount</div></div>
+              </div>
+            </div>
+
+            <div class="section-label">Upload evidence</div>
+            <div class="upload-zone">
+              <div class="upload-icon">📎</div>
+              <div class="upload-title">Tap to upload</div>
+              <div class="upload-sub">Receipt, screenshot, bank statement · PDF, PNG, JPG</div>
+            </div>
+
+            <!-- Uploaded file with OCR badge -->
+            <div class="file-item">
+              <span class="file-icon">🧾</span>
+              <div style="flex:1;">
+                <div class="file-name">payment_receipt.pdf</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                  <span class="file-size">248 KB</span>
+                  <span class="ocr-badge">✦ OCR Scanned</span>
+                </div>
+              </div>
+              <span class="file-check">✓</span>
+            </div>
+
+            <textarea class="field-textarea" rows="3" style="margin-top:12px;" placeholder="Describe the issue in detail…">I transferred the full amount on 4 Mar at 16:18 IST. Seller hasn't confirmed receipt after 45 minutes.</textarea>
+            <div style="font-size:11px;color:var(--textSub);margin-top:6px;">Reviewed by our P2P team within 24 hrs.</div>
+          </div>
+
+          <div class="sheet-footer">
+            <button class="btn-cancel-sm">Cancel</button>
+            <button class="btn-submit-sm">Submit Dispute</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotations -->
+  <div class="annotations">
+
+    <div class="ann-card" style="border-color:var(--coral);">
+      <div class="ann-title" style="color:var(--coral);">📎 Evidence Types Accepted</div>
+      <div class="evidence-grid">
+        <div class="ev-item"><div class="ev-icon">🧾</div><div class="ev-label">Payment Receipt</div><div class="ev-desc">PDF, JPG, PNG — triggers OCR</div></div>
+        <div class="ev-item"><div class="ev-icon">📸</div><div class="ev-label">Screenshot</div><div class="ev-desc">Chat, bank app, transfer confirmation</div></div>
+        <div class="ev-item"><div class="ev-icon">🏦</div><div class="ev-label">Bank Statement</div><div class="ev-desc">PDF export from banking app</div></div>
+        <div class="ev-item"><div class="ev-icon">💬</div><div class="ev-label">Chat Logs</div><div class="ev-desc">Auto-attached from P2P chat</div></div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-title">✦ Automated OCR — Receipt Verification</div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:#2c9aff;"></div>
+        <div class="ann-text">On upload, backend runs <b>OCR scan</b> on the document immediately</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:#2c9aff;"></div>
+        <div class="ann-text">Extracts: <b>merchant name</b>, <b>transaction date</b>, <b>total amount</b>, <b>reference ID</b></div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--buy);"></div>
+        <div class="ann-text">Results stored on the dispute ticket — moderator sees pre-parsed data instantly</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text">If OCR fails (blurry/invalid) → user sees inline warning to re-upload</div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-title">≡ Form Validation Rules</div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text"><b>Reason</b> — required, blocks submit if empty</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--coral);"></div>
+        <div class="ann-text"><b>Evidence</b> — strongly encouraged; warning shown if skipped but not blocked</div>
+      </div>
+      <div class="ann-row">
+        <div class="ann-dot" style="background:var(--textSub);"></div>
+        <div class="ann-text"><b>Description</b> — optional; pre-populated from chat sentiment summary if available</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

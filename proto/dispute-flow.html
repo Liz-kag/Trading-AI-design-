@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2P Dispute Flow — Deriv</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --coral:     #ff444f;
+  --buy:       #00c390;
+  --sell:      #de0040;
+  --dark:      #181c25;
+  --surface:   #ffffff;
+  --frame:     #f6f7f8;
+  --border:    rgba(0,0,0,.08);
+  --borderMid: rgba(0,0,0,.14);
+  --textHi:    #181c25;
+  --textDef:   #333;
+  --textSub:   #999;
+  --tagInfoBg: #e8f4ff; --tagInfoTx: #0777c4;
+  --tagWarnBg: #fff3e0; --tagWarnTx: #c47d00;
+  --tagSuccBg: #e6faf5; --tagSuccTx: #007a22;
+  --tagDangBg: #fff0f0; --tagDangTx: #cc0000;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  background: var(--dark);
+  color: var(--textDef);
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── CHROME ──────────────────────────────────── */
+.chrome {
+  flex-shrink: 0;
+  background: var(--dark);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+}
+.brand { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.brand span { color: var(--coral); }
+
+.progress-bar-wrap { flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.step-pills { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.step-pills::-webkit-scrollbar { display: none; }
+.step-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 96px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+  color: rgba(255,255,255,.35);
+  cursor: pointer; border: 1px solid transparent;
+  transition: all .2s; flex-shrink: 0;
+}
+.step-pill:hover { color: rgba(255,255,255,.6); }
+.step-pill.visited { color: rgba(255,255,255,.5); border-color: rgba(255,255,255,.1); }
+.step-pill.active { color: #fff; background: var(--coral); }
+.step-pill .n {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+}
+.step-pill.active .n { background: rgba(255,255,255,.25); }
+.step-pill.done .n::after { content: '✓'; font-size: 9px; }
+
+/* ── STAGE ───────────────────────────────────── */
+.stage {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.step {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--frame);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(40px);
+  transition: opacity .3s ease, transform .3s ease;
+  scrollbar-width: thin;
+}
+.step.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.step.exit {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.step-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 16px 100px;
+}
+
+/* Step header */
+.step-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+.step-num {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--coral); color: #fff;
+  font-size: 17px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-title { font-size: 20px; font-weight: 800; color: var(--textHi); }
+.step-sub   { font-size: 13px; color: var(--textSub); margin-top: 3px; }
+
+/* ── FOOTER CTA ──────────────────────────────── */
+.footer-cta {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, var(--dark) 60%, transparent);
+  padding: 20px 16px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  z-index: 50;
+  pointer-events: none;
+}
+.footer-cta button { pointer-events: auto; }
+.btn-back {
+  height: 44px; padding: 0 20px; border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: transparent; color: rgba(255,255,255,.6);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+}
+.btn-back:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+.btn-back:disabled { opacity: 0; pointer-events: none; }
+.btn-next {
+  height: 44px; padding: 0 24px; border-radius: 22px;
+  border: none; background: var(--coral); color: #fff;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(255,68,79,.4);
+}
+.btn-next:hover { background: #e03a44; transform: translateY(-1px); }
+.btn-next.ghost {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.6); box-shadow: none;
+}
+.step-counter { font-size: 12px; color: rgba(255,255,255,.35); font-weight: 600; }
+
+/* ── SHARED COMPONENTS ───────────────────────── */
+.card {
+  background: var(--surface); border-radius: 12px;
+  border: 1px solid var(--border); padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+.card + .card { margin-top: 14px; }
+.card-title {
+  font-size: 13px; font-weight: 800; color: var(--textHi);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+
+.tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 96px; font-size: 11px; font-weight: 700; }
+.tag-info { background: var(--tagInfoBg); color: var(--tagInfoTx); }
+.tag-warn { background: var(--tagWarnBg); color: var(--tagWarnTx); }
+.tag-succ { background: var(--tagSuccBg); color: var(--tagSuccTx); }
+.tag-dang { background: var(--tagDangBg); color: var(--tagDangTx); }
+.badge-ai   { padding: 2px 9px; border-radius: 96px; background: var(--dark); color: #fff; font-size: 10px; font-weight: 700; }
+.badge-auto { padding: 2px 9px; border-radius: 96px; background: #2c9aff14; color: #0777c4; font-size: 10px; font-weight: 700; }
+
+/* ── PHONE ───────────────────────────────────── */
+.phone-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+.phone {
+  width: 100%; max-width: 320px;
+  background: #f6f7f8; border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 0 7px #0d1017;
+}
+.phone-status { background: #0d1017; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+.phone-time   { font-size: 12px; font-weight: 700; color: #fff; }
+.phone-icons  { font-size: 10px; color: rgba(255,255,255,.5); display: flex; gap: 5px; }
+.phone-tabbar { background: #0d1017; padding: 0 14px 12px; display: flex; gap: 6px; }
+.phone-tab    { padding: 5px 12px; border-radius: 96px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.35); }
+.phone-tab.active { background: rgba(255,255,255,.1); color: #fff; }
+.phone-body   { padding: 10px 10px; display: flex; flex-direction: column; gap: 8px; }
+.phone-nav    { border-top: 1px solid var(--border); display: flex; background: #fff; }
+.phone-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 9px 0; gap: 2px; }
+.phone-nav-item.active .nav-icon-label { color: var(--coral); }
+.nav-icon-label { font-size: 9px; font-weight: 600; color: var(--textSub); }
+
+/* Order cards */
+.order-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; }
+.order-card.dispute { border-color: var(--coral); box-shadow: 0 0 0 3px #ff444f14; position: relative; }
+.pulse { position: absolute; top: -5px; right: -5px; width: 13px; height: 13px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 4px #ff444f33; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px #ff444f33; } 50% { box-shadow: 0 0 0 6px #ff444f15; } }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 4px; }
+.order-amount { font-size: 14px; font-weight: 800; color: var(--textHi); margin: 3px 0; }
+.order-amount .buy  { color: var(--buy); }
+.order-amount .sell { color: var(--sell); }
+.order-meta { font-size: 10px; color: var(--textSub); }
+.timer { font-size: 11px; font-weight: 700; color: var(--textSub); font-family: monospace; }
+.timer.expired { color: var(--coral); }
+
+/* ── BOTTOM SHEET ────────────────────────────── */
+.sheet { background: #fff; border-radius: 14px 14px 0 0; }
+.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 10px auto; }
+.sheet-header { padding: 0 16px 12px; border-bottom: 1px solid var(--border); }
+.sheet-title  { font-size: 15px; font-weight: 800; color: var(--textHi); margin-bottom: 6px; }
+.order-summary { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; flex-wrap: wrap; }
+.summary-type { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 96px; }
+.summary-type.buy { background: var(--tagSuccBg); color: var(--tagSuccTx); }
+.summary-amount { font-size: 14px; font-weight: 800; color: var(--textHi); }
+.summary-id { font-size: 10px; color: var(--textSub); }
+.sheet-body { padding: 12px 14px; }
+.section-label { font-size: 11px; font-weight: 700; color: var(--textHi); margin-bottom: 7px; }
+.reason-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.reason-option { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; border-radius: 8px; border: 1.5px solid var(--border); cursor: pointer; transition: all .15s; }
+.reason-option.selected { border-color: var(--coral); background: #ff444f06; }
+.radio { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--borderMid); flex-shrink: 0; margin-top: 1px; transition: all .15s; }
+.radio.checked { border-color: var(--coral); background: var(--coral); box-shadow: inset 0 0 0 3px #fff; }
+.reason-label { font-size: 11px; font-weight: 700; color: var(--textHi); }
+.reason-desc  { font-size: 10px; color: var(--textSub); margin-top: 1px; }
+.upload-zone  { border: 1.5px dashed var(--coral); border-radius: 8px; padding: 12px; text-align: center; background: #ff444f06; margin-bottom: 7px; }
+.upload-title { font-size: 11px; font-weight: 700; color: var(--coral); }
+.upload-sub   { font-size: 9px; color: var(--textSub); margin-top: 2px; }
+.file-item    { display: flex; align-items: center; gap: 7px; padding: 7px 9px; background: var(--frame); border-radius: 7px; margin-bottom: 8px; }
+.file-name    { font-size: 11px; font-weight: 600; color: var(--textHi); flex: 1; }
+.ocr-badge    { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 96px; background: var(--tagInfoBg); color: var(--tagInfoTx); font-size: 9px; font-weight: 700; }
+textarea.field { width: 100%; border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 10px; font-size: 11px; font-family: inherit; resize: none; color: var(--textDef); background: var(--frame); }
+.sheet-footer { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 7px; }
+.btn-cancel-sm { flex: 1; height: 38px; border-radius: 19px; border: 1px solid var(--borderMid); background: transparent; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-submit-sm { flex: 1; height: 38px; border-radius: 19px; border: none; background: var(--coral); color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-submit-sm:hover { background: #e03a44; }
+
+/* ── TWO-COL ─────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 560px) { .two-col { grid-template-columns: 1fr 1fr; } }
+
+/* ── API PAYLOAD ─────────────────────────────── */
+.api-method { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; background: var(--dark); border-radius: 6px; font-family: monospace; font-size: 11px; color: #fff; margin-bottom: 8px; }
+.method-post { padding: 1px 6px; border-radius: 3px; background: #2c9aff; font-size: 9px; font-weight: 800; }
+.endpoint { color: rgba(255,255,255,.55); }
+pre.payload  { background: #0d1017; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 10.5px; line-height: 1.8; color: rgba(255,255,255,.7); overflow-x: auto; white-space: pre; }
+pre.response { background: #00883214; border: 1px solid #00883230; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 10.5px; line-height: 1.8; color: #007a22; overflow-x: auto; white-space: pre; }
+.k { color: #2c9aff; } .v { color: #ff9c13; } .n { color: #00c390; }
+
+/* Flow bar */
+.flow-bar { display: flex; overflow-x: auto; gap: 0; margin-bottom: 18px; scrollbar-width: none; }
+.flow-bar::-webkit-scrollbar { display: none; }
+.flow-box { flex-shrink: 0; background: var(--frame); border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px; font-size: 10px; font-weight: 700; color: var(--textSub); white-space: nowrap; }
+.flow-box.active { background: #ff444f0a; border-color: var(--coral); color: var(--coral); }
+.flow-arr { padding: 0 4px; color: var(--coral); font-size: 13px; display: flex; align-items: center; flex-shrink: 0; }
+
+/* Ticket */
+.ticket { background: var(--frame); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--border); }
+.t-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 11px; gap: 8px; }
+.t-row:last-child { border: none; }
+.t-key { color: var(--textSub); flex-shrink: 0; }
+.t-val { color: var(--textHi); font-weight: 600; text-align: right; }
+
+/* Notifs */
+.notif { display: flex; align-items: flex-start; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.notif:last-child { border: none; }
+.notif-icon { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.notif-title { font-size: 11px; font-weight: 700; color: var(--textHi); }
+.notif-desc  { font-size: 10px; color: var(--textSub); margin-top: 1px; }
+.st-sent   { padding: 1px 7px; border-radius: 96px; font-size: 9px; font-weight: 700; background: var(--tagSuccBg); color: var(--tagSuccTx); white-space: nowrap; }
+.st-queued { padding: 1px 7px; border-radius: 96px; font-size: 9px; font-weight: 700; background: var(--tagInfoBg); color: var(--tagInfoTx); white-space: nowrap; }
+
+/* OCR */
+.ocr-doc { background: var(--frame); border-radius: 8px; padding: 10px 12px; border: 1px solid var(--border); margin-bottom: 8px; }
+.ocr-f { display: flex; justify-content: space-between; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 11px; gap: 8px; }
+.ocr-f:last-child { border: none; }
+.ocr-k { color: var(--textSub); flex-shrink: 0; }
+.ocr-v { color: var(--textHi); font-weight: 600; text-align: right; }
+.ocr-v.match { color: var(--buy); }
+.ocr-status { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 7px; background: var(--tagSuccBg); font-size: 11px; font-weight: 700; color: var(--tagSuccTx); }
+
+/* Match table */
+.match-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.match-table th { text-align: left; padding: 5px 7px; font-size: 9px; font-weight: 700; color: var(--textSub); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+.match-table td { padding: 5px 7px; border-bottom: 1px solid var(--border); color: var(--textDef); }
+.match-table tr:last-child td { border: none; }
+.mp { color: var(--buy); font-size: 13px; }
+.mf { color: var(--coral); font-size: 13px; }
+.mw { color: #c47d00; font-size: 13px; }
+.verdict { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 8px; background: var(--tagSuccBg); margin-top: 9px; }
+.verdict-text { font-size: 11px; font-weight: 700; color: var(--tagSuccTx); }
+
+/* Sentiment */
+.s-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.s-label { font-size: 10px; color: var(--textSub); width: 68px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 6px; background: var(--frame); border-radius: 96px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 96px; }
+.bar-pct { font-size: 10px; font-weight: 700; width: 28px; text-align: right; flex-shrink: 0; }
+.flag-item { display: flex; align-items: flex-start; gap: 7px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+.flag-item:last-child { border: none; }
+
+/* Triage */
+.triage-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.ring { width: 68px; height: 68px; border-radius: 50%; border: 5px solid var(--coral); flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-score { font-size: 18px; font-weight: 800; color: var(--coral); line-height: 1; }
+.ring-label { font-size: 9px; color: var(--textSub); margin-top: 1px; }
+.tr-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 11px; gap: 8px; }
+.tr-row:last-child { border: none; }
+.tr-key { color: var(--textSub); flex-shrink: 0; max-width: 55%; }
+.tr-val { color: var(--textHi); font-weight: 600; text-align: right; }
+.tr-val.high   { color: var(--coral); }
+.tr-val.medium { color: #c47d00; }
+.tr-val.low    { color: var(--buy); }
+.priority-pill { padding: 3px 9px; border-radius: 96px; font-size: 10px; font-weight: 700; background: var(--tagDangBg); color: var(--tagDangTx); display: inline-block; margin-bottom: 5px; }
+
+/* Step 5 */
+.in-app-toast { background: var(--dark); border-radius: 10px; padding: 9px 11px; display: flex; align-items: flex-start; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.4); margin: 8px; }
+.toast-dot    { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.toast-title  { font-size: 11px; font-weight: 700; color: #fff; }
+.toast-body   { font-size: 9px; color: rgba(255,255,255,.45); margin-top: 2px; line-height: 1.4; }
+.toast-time   { font-size: 8px; color: rgba(255,255,255,.25); margin-top: 3px; }
+.dispute-banner { display: flex; align-items: center; gap: 5px; padding: 6px 9px; background: #ff9c1314; border-radius: 6px; margin-top: 7px; }
+.db-title { font-size: 9px; font-weight: 700; color: #c47d00; }
+.db-sub   { font-size: 9px; color: #c47d00; }
+
+.mod-ticket { border: 1.5px solid var(--coral); border-radius: 12px; overflow: hidden; }
+.mod-header { background: var(--dark); padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mod-id  { font-size: 14px; font-weight: 800; color: #fff; }
+.mod-sub { font-size: 9px; color: rgba(255,255,255,.35); margin-top: 1px; font-family: monospace; }
+.mod-grid { padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.mod-stat { background: var(--frame); border-radius: 6px; padding: 7px 9px; }
+.mod-stat-k { font-size: 9px; color: var(--textSub); margin-bottom: 2px; }
+.mod-stat-v { font-size: 12px; font-weight: 800; color: var(--textHi); }
+.mod-footer { padding: 0 14px 12px; }
+.ev-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+.ev-chip { display: flex; align-items: center; gap: 3px; padding: 3px 9px; border-radius: 96px; background: var(--frame); border: 1px solid var(--border); font-size: 10px; color: var(--textDef); }
+.mod-actions { display: flex; gap: 6px; }
+.btn-resolve  { flex: 1; height: 34px; border-radius: 17px; border: none; background: var(--buy); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-escalate { flex: 1; height: 34px; border-radius: 17px; border: none; background: var(--coral); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-info     { flex: 1; height: 34px; border-radius: 17px; border: 1px solid var(--border); background: transparent; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+/* Email */
+.email-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.email-bar { background: var(--dark); padding: 8px 13px; }
+.email-bar-label { font-size: 9px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .5px; }
+.email-meta-row { background: #fff; padding: 11px 13px; border-bottom: 1px solid var(--border); }
+.email-meta    { font-size: 10px; color: var(--textSub); margin-bottom: 2px; }
+.email-subject { font-size: 12px; font-weight: 700; color: var(--textHi); }
+.email-body    { padding: 14px; background: #f0f2f5; }
+.email-brand   { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+.email-brand span { color: var(--coral); }
+.email-h1 { font-size: 16px; font-weight: 800; color: var(--textHi); margin-bottom: 6px; }
+.email-p  { font-size: 11px; color: var(--textDef); line-height: 1.6; margin-bottom: 9px; }
+.email-box { background: #fff; border-radius: 7px; padding: 10px 12px; border: 1px solid var(--border); margin: 9px 0; }
+.email-row { display: flex; justify-content: space-between; font-size: 10px; padding: 3px 0; }
+.email-key { color: var(--textSub); }
+.email-val { color: var(--textHi); font-weight: 600; }
+.email-cta { display: block; margin: 12px auto 0; padding: 9px 22px; border-radius: 20px; background: var(--coral); color: #fff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; width: fit-content; font-family: inherit; }
+.email-footer { font-size: 10px; color: var(--textSub); text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* Annotations */
+.ann { background: #fff; border-radius: 10px; border: 1px solid var(--border); padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.ann + .ann { margin-top: 12px; }
+.ann-title { font-size: 12px; font-weight: 700; color: var(--textHi); margin-bottom: 9px; display: flex; align-items: center; gap: 7px; }
+.ann-row { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.ann-row:last-child { border: none; padding-bottom: 0; }
+.ann-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.ann-text { font-size: 11px; color: var(--textDef); line-height: 1.5; }
+.code-block { background: var(--frame); border-radius: 7px; padding: 10px 12px; font-size: 10.5px; font-family: monospace; color: var(--textDef); line-height: 1.8; }
+.ci { color: #0777c4; font-weight: 700; } .cv { color: var(--coral); font-weight: 700; } .ck { color: #007a22; }
+.ev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.ev-item { background: var(--frame); border-radius: 7px; padding: 9px; }
+.ev-icon  { font-size: 16px; margin-bottom: 3px; }
+.ev-label { font-size: 10px; font-weight: 700; color: var(--textHi); }
+.ev-desc  { font-size: 9px; color: var(--textSub); margin-top: 2px; }
+
+/* Interactive highlight */
+.interactive { position: relative; cursor: pointer; }
+.interactive::after { content: 'Click me'; position: absolute; top: -8px; right: -8px; background: var(--coral); color: #fff; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 96px; pointer-events: none; animation: bounce 1.5s infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* Done screen */
+.done-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 52px); padding: 32px 16px; text-align: center; }
+.done-icon { font-size: 64px; margin-bottom: 16px; }
+.done-title { font-size: 24px; font-weight: 800; color: var(--textHi); margin-bottom: 8px; }
+.done-sub { font-size: 14px; color: var(--textSub); max-width: 360px; margin: 0 auto 24px; }
+.btn-restart { height: 44px; padding: 0 28px; border-radius: 22px; border: none; background: var(--coral); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<!-- TOP CHROME -->
+<div class="chrome">
+  <div class="brand"><span>deriv</span>P2P</div>
+  <div class="progress-bar-wrap">
+    <div class="step-pills" id="stepPills">
+      <div class="step-pill active" data-step="0"><span class="n">1</span> Trigger</div>
+      <div class="step-pill" data-step="1"><span class="n">2</span> Evidence</div>
+      <div class="step-pill" data-step="2"><span class="n">3</span> API &amp; Ticket</div>
+      <div class="step-pill" data-step="3"><span class="n">4</span> AI Analysis</div>
+      <div class="step-pill" data-step="4"><span class="n">5</span> Resolution</div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE -->
+<div class="stage">
+
+  <!-- ═══ STEP 1: TRIGGER ═══ -->
+  <div class="step active" id="step-0">
+    <div class="step-inner">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Dispute Trigger</div>
+          <div class="step-sub">Order timer expires → the "Raise a Dispute" button appears</div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-status">
+            <span class="phone-time">16:20</span>
+            <div class="phone-icons"><span>●●●</span><span>WiFi</span><span>⬛</span></div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="phone-tab active">Active</div>
+            <div class="phone-tab">Past</div>
+          </div>
+          <div class="phone-body">
+            <div class="order-card">
+              <div class="card-top"><span class="tag tag-info">Complete payment</span><span class="timer">00:59:59</span></div>
+              <div class="order-amount"><span class="buy">Buy </span>5.00 USD</div>
+              <div class="order-meta">You pay: 83,833.75 IDR · Farid07</div>
+            </div>
+            <div class="order-card">
+              <div class="card-top"><span class="tag tag-info">Confirm payment</span><span class="timer">00:20:59</span></div>
+              <div class="order-amount"><span class="sell">Sell </span>5.00 USD</div>
+              <div class="order-meta">You receive: 14,500.00 IDR · Jackson</div>
+            </div>
+            <div class="order-card dispute interactive" id="raiseBtn" onclick="goToStep(1)">
+              <div class="pulse"></div>
+              <div class="card-top"><span class="tag tag-warn">Waiting seller's confirmation</span><span class="timer expired">00:00:00</span></div>
+              <div class="order-amount"><span class="buy">Buy </span>5.00 USD</div>
+              <div class="order-meta">You pay: 443.87 INR · Rahul12</div>
+              <button style="width:100%;margin-top:9px;height:34px;border-radius:17px;border:1.5px solid var(--coral);background:transparent;color:var(--coral);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">⚑ Raise a Dispute</button>
+            </div>
+          </div>
+          <div class="phone-nav">
+            <div class="phone-nav-item"><span style="font-size:16px;">⌂</span><span class="nav-icon-label">Home</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">⇅</span><span class="nav-icon-label">Market</span></div>
+            <div class="phone-nav-item active"><span style="font-size:16px;">≡</span><span class="nav-icon-label">Orders</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">Ad</span><span class="nav-icon-label">My ads</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">👤</span><span class="nav-icon-label">Profile</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann">
+        <div class="ann-title">① Trigger Condition</div>
+        <div class="code-block">
+          <span class="ci">if</span> (order.<span class="ck">status</span> === <span class="cv">"waiting_seller"</span><br>
+          &nbsp;&nbsp;&amp;&amp; order.<span class="ck">timer</span> === <span class="cv">0</span>) {<br>
+          &nbsp;&nbsp;showDisputeButton(<span class="cv">true</span>)<br>
+          &nbsp;&nbsp;highlightCard(<span class="cv">"coral"</span>)<br>
+          }
+        </div>
+      </div>
+      <div class="ann" style="margin-top:12px;">
+        <div class="ann-title">② UI Changes on Timer Expiry</div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--coral)"></div><div class="ann-text">Timer turns <strong>coral red</strong> and shows 00:00:00</div></div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--coral)"></div><div class="ann-text">Order card gets <strong>coral border + animated pulse ring</strong></div></div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--coral)"></div><div class="ann-text"><strong>"Raise a Dispute"</strong> button appears, full width</div></div>
+        <div class="ann-row"><div class="ann-dot" style="background:#2c9aff"></div><div class="ann-text">Other cards remain unchanged</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: EVIDENCE ═══ -->
+  <div class="step" id="step-1">
+    <div class="step-inner">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Evidence Collection</div>
+          <div class="step-sub">User selects reason, uploads proof — OCR triggered on upload</div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-status">
+            <span class="phone-time">16:20</span>
+            <div class="phone-icons"><span>●●●</span><span>WiFi</span><span>⬛</span></div>
+          </div>
+          <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+              <div class="sheet-title">Raise a Dispute</div>
+              <div class="order-summary">
+                <span class="summary-type buy">Buy</span>
+                <span class="summary-amount">5.00 USD</span>
+                <span class="summary-id">ID: 1270078</span>
+              </div>
+              <div style="font-size:10px;color:var(--textSub);margin-bottom:6px;">You pay: <strong>443.87 INR</strong> · Counterparty: <strong>Rahul12</strong></div>
+              <span class="tag tag-warn">Under Dispute</span>
+            </div>
+            <div class="sheet-body">
+              <div class="section-label">Select reason</div>
+              <div class="reason-list" id="reasonList">
+                <div class="reason-option selected" onclick="selectReason(0)">
+                  <div class="radio checked"></div>
+                  <div><div class="reason-label">Seller didn't release crypto</div><div class="reason-desc">I've paid but seller hasn't released</div></div>
+                </div>
+                <div class="reason-option" onclick="selectReason(1)">
+                  <div class="radio"></div>
+                  <div><div class="reason-label">Payment not received</div></div>
+                </div>
+                <div class="reason-option" onclick="selectReason(2)">
+                  <div class="radio"></div>
+                  <div><div class="reason-label">Wrong payment amount</div></div>
+                </div>
+              </div>
+              <div class="section-label">Upload evidence</div>
+              <div class="upload-zone">
+                <div style="font-size:20px;margin-bottom:3px;">📎</div>
+                <div class="upload-title">Tap to upload</div>
+                <div class="upload-sub">Receipt, screenshot, bank statement · PDF, PNG, JPG</div>
+              </div>
+              <div class="file-item">
+                <span style="font-size:17px;">🧾</span>
+                <div style="flex:1;"><div class="file-name">payment_receipt.pdf</div><div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:9px;color:var(--textSub);">248 KB</span><span class="ocr-badge">✦ OCR Scanned</span></div></div>
+                <span style="color:var(--buy);font-size:14px;">✓</span>
+              </div>
+              <textarea class="field" rows="3">I transferred the full amount on 4 Mar at 16:18 IST. Seller hasn't confirmed receipt after 45 minutes.</textarea>
+            </div>
+            <div class="sheet-footer">
+              <button class="btn-cancel-sm" onclick="goToStep(0)">Cancel</button>
+              <button class="btn-submit-sm interactive" onclick="goToStep(2)" style="cursor:pointer;">Submit Dispute</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann" style="border-color:var(--coral);">
+        <div class="ann-title" style="color:var(--coral);">📎 Evidence Types Accepted</div>
+        <div class="ev-grid">
+          <div class="ev-item"><div class="ev-icon">🧾</div><div class="ev-label">Payment Receipt</div><div class="ev-desc">PDF, JPG, PNG — triggers OCR</div></div>
+          <div class="ev-item"><div class="ev-icon">📸</div><div class="ev-label">Screenshot</div><div class="ev-desc">Chat, bank app, transfer</div></div>
+          <div class="ev-item"><div class="ev-icon">🏦</div><div class="ev-label">Bank Statement</div><div class="ev-desc">PDF from banking app</div></div>
+          <div class="ev-item"><div class="ev-icon">💬</div><div class="ev-label">Chat Logs</div><div class="ev-desc">Auto-attached from P2P chat</div></div>
+        </div>
+      </div>
+      <div class="ann" style="margin-top:12px;">
+        <div class="ann-title">Form Validation Rules</div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--coral)"></div><div class="ann-text"><strong>Reason</strong> — required, blocks submit if empty</div></div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--coral)"></div><div class="ann-text"><strong>Evidence</strong> — strongly encouraged; warning shown if skipped</div></div>
+        <div class="ann-row"><div class="ann-dot" style="background:var(--textSub)"></div><div class="ann-text"><strong>Description</strong> — optional; pre-filled from chat sentiment if available</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: API + TICKET ═══ -->
+  <div class="step" id="step-2">
+    <div class="step-inner">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Backend API + System Ticket</div>
+          <div class="step-sub">POST to disputes API → ticket created → notifications dispatched</div>
+        </div>
+      </div>
+
+      <div class="flow-bar">
+        <div class="flow-box">① Submit</div><div class="flow-arr">→</div>
+        <div class="flow-box active">② POST /dispute</div><div class="flow-arr">→</div>
+        <div class="flow-box">③ Ticket</div><div class="flow-arr">→</div>
+        <div class="flow-box">④ OCR</div><div class="flow-arr">→</div>
+        <div class="flow-box">⑤ Notify</div><div class="flow-arr">→</div>
+        <div class="flow-box">⑥ Mod Review</div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">① API Request</div>
+            <div class="api-method"><span class="method-post">POST</span><span class="endpoint">/v1/p2p/order/dispute/create</span></div>
+            <pre class="payload">{
+  <span class="k">"order_id"</span>:    <span class="v">"1270078"</span>,
+  <span class="k">"reason"</span>:      <span class="v">"seller_no_release"</span>,
+  <span class="k">"evidence"</span>: [{
+    <span class="k">"file_id"</span>:  <span class="v">"file_abc123"</span>,
+    <span class="k">"type"</span>:     <span class="v">"receipt"</span>,
+    <span class="k">"ocr_done"</span>: <span class="n">true</span>
+  }],
+  <span class="k">"initiated_by"</span>: <span class="v">"buyer"</span>,
+  <span class="k">"timestamp"</span>: <span class="v">"2026-03-04T16:20Z"</span>
+}</pre>
+          </div>
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title" style="color:var(--buy);">② API Response — 201 Created</div>
+            <pre class="response">{
+  "status":       "created",
+  "dispute_id":   "DSP-2026-001270078",
+  "ticket_id":    "TKT-89421",
+  "order_status": "under_dispute",
+  "sla_deadline": "2026-03-05T16:20:00Z",
+  "triage_score":  0.87,
+  "risk_level":   "high"
+}</pre>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="border-color:#2c9aff;">
+            <div class="card-title">📋 System Ticket — TKT-89421</div>
+            <div class="ticket">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:5px;">
+                <span style="font-size:12px;font-weight:800;color:var(--textHi);font-family:monospace;">TKT-89421</span>
+                <span class="tag tag-warn">Under Review</span>
+              </div>
+              <div class="t-row"><span class="t-key">Dispute ID</span><span class="t-val">DSP-2026-001270078</span></div>
+              <div class="t-row"><span class="t-key">Order</span><span class="t-val">#1270078</span></div>
+              <div class="t-row"><span class="t-key">Buyer</span><span class="t-val">user_7821</span></div>
+              <div class="t-row"><span class="t-key">Seller</span><span class="t-val">Rahul12</span></div>
+              <div class="t-row"><span class="t-key">Amount</span><span class="t-val">5.00 USD / ₹443.87</span></div>
+              <div class="t-row"><span class="t-key">Triage score</span><span class="t-val" style="color:var(--coral);">0.87 — High</span></div>
+              <div class="t-row"><span class="t-key">SLA deadline</span><span class="t-val">2026-03-05 16:20 UTC</span></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">🔔 Notifications</div>
+            <div class="notif"><div class="notif-icon" style="background:#2c9aff14;">📧</div><div style="flex:1;"><div class="notif-title">Email → Buyer (user_7821)</div><div class="notif-desc">"Dispute submitted — TKT-89421"</div></div><span class="st-sent">Sent</span></div>
+            <div class="notif"><div class="notif-icon" style="background:#ff9c1314;">📧</div><div style="flex:1;"><div class="notif-title">Email → Seller (Rahul12)</div><div class="notif-desc">"Dispute raised on order #1270078"</div></div><span class="st-sent">Sent</span></div>
+            <div class="notif"><div class="notif-icon" style="background:var(--tagSuccBg);">📲</div><div style="flex:1;"><div class="notif-title">Push → Buyer (in-app)</div><div class="notif-desc">Toast: "Dispute raised · TKT-89421"</div></div><span class="st-sent">Sent</span></div>
+            <div class="notif"><div class="notif-icon" style="background:var(--tagWarnBg);">👥</div><div style="flex:1;"><div class="notif-title">Internal → P2P Disputes Team</div><div class="notif-desc">Slack + dashboard — HIGH priority 0.87</div></div><span class="st-queued">Queued</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4: AI ANALYSIS ═══ -->
+  <div class="step" id="step-3">
+    <div class="step-inner">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Automated AI Analysis</div>
+          <div class="step-sub">OCR · Three-way matching · Sentiment analysis · Predictive triage — running in parallel</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">📄 Receipt Verification (OCR) <span class="badge-auto">Auto</span></div>
+          <div class="ocr-doc">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+              <span style="font-size:16px;">🧾</span>
+              <div><div style="font-size:11px;font-weight:700;color:var(--textHi);">payment_receipt.pdf</div><div style="font-size:9px;color:var(--textSub);">248 KB · Scanned 2026-03-04 16:20 UTC</div></div>
+            </div>
+            <div class="ocr-f"><span class="ocr-k">Merchant name</span><span class="ocr-v match">Rahul Kumar (Rahul12)</span></div>
+            <div class="ocr-f"><span class="ocr-k">Transaction date</span><span class="ocr-v match">4 Mar 2026, 16:18 IST</span></div>
+            <div class="ocr-f"><span class="ocr-k">Amount</span><span class="ocr-v match">₹443.87</span></div>
+            <div class="ocr-f"><span class="ocr-k">Reference ID</span><span class="ocr-v">UTR4892761833</span></div>
+            <div class="ocr-f"><span class="ocr-k">Status</span><span class="ocr-v match">SUCCESSFUL</span></div>
+          </div>
+          <div class="ocr-status">✓ OCR confidence: 97%</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚖ Three-Way Matching <span class="badge-auto">Auto</span></div>
+          <p style="font-size:10px;color:var(--textSub);margin-bottom:8px;">Compares OCR data against Order ID and seller's bank details</p>
+          <table class="match-table">
+            <thead><tr><th>Field</th><th>Expected</th><th>Found</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Amount</td><td>₹443.87</td><td>₹443.87</td><td class="mp">✓</td></tr>
+              <tr><td>Recipient</td><td>Rahul Kumar</td><td>Rahul Kumar</td><td class="mp">✓</td></tr>
+              <tr><td>Date</td><td>4 Mar 2026</td><td>4 Mar 2026</td><td class="mp">✓</td></tr>
+              <tr><td>Seller UPI</td><td>rahul@hdfc</td><td>Not visible</td><td class="mw">⚠</td></tr>
+              <tr><td>Order ID ref</td><td>#1270078</td><td>Not included</td><td class="mf">✗</td></tr>
+            </tbody>
+          </table>
+          <div class="verdict"><span style="font-size:16px;">✓</span><div><div class="verdict-text">3/5 passed — Payment appears legitimate</div><div style="font-size:10px;color:var(--tagSuccTx);margin-top:1px;">Buyer likely paid. Seller may be withholding.</div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💬 Chat Sentiment Analysis <span class="badge-ai">AI</span></div>
+          <p style="font-size:10px;color:var(--textSub);margin-bottom:10px;">Scans in-app chat logs from Order #1270078</p>
+          <div class="s-bar"><span class="s-label">Urgency</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:var(--coral);"></div></div><span class="bar-pct" style="color:var(--coral);">78%</span></div>
+          <div class="s-bar"><span class="s-label">Frustration</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#c47d00;"></div></div><span class="bar-pct" style="color:#c47d00;">65%</span></div>
+          <div class="s-bar" style="margin-bottom:12px;"><span class="s-label">Trust</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--buy);"></div></div><span class="bar-pct" style="color:var(--buy);">30%</span></div>
+          <div style="font-size:11px;font-weight:700;color:var(--textHi);margin-bottom:5px;">🚩 Risk Flags</div>
+          <div class="flag-item"><span>🔴</span><span>Seller suggested <strong>WhatsApp</strong> at 16:05 — off-platform attempt</span></div>
+          <div class="flag-item"><span>🟠</span><span>Seller sent <strong>3 messages</strong> asking buyer to cancel before payment</span></div>
+          <div class="flag-item"><span>🟡</span><span>Seller response time jumped from <strong>2 min → 18 min</strong></span></div>
+        </div>
+
+        <div class="card" style="border-color:var(--coral);">
+          <div class="card-title">🎯 Predictive Triage <span class="badge-ai">AI</span></div>
+          <div class="triage-top">
+            <div class="ring"><span class="ring-score">0.87</span><span class="ring-label">Risk Score</span></div>
+            <div><span class="priority-pill">HIGH PRIORITY</span><div style="font-size:11px;color:var(--textDef);line-height:1.5;"><strong style="color:var(--coral);">91% probability</strong> this dispute is valid.</div></div>
+          </div>
+          <div class="tr-row"><span class="tr-key">Claim validity</span><span class="tr-val high">91% — Valid</span></div>
+          <div class="tr-row"><span class="tr-key">Urgency level</span><span class="tr-val high">Critical (SLA: 4 hrs)</span></div>
+          <div class="tr-row"><span class="tr-key">Seller risk score</span><span class="tr-val high">0.82 — High</span></div>
+          <div class="tr-row"><span class="tr-key">Buyer history</span><span class="tr-val low">Clean — 48 completed</span></div>
+          <div class="tr-row"><span class="tr-key">Similar cases</span><span class="tr-val">94% in buyer's favour</span></div>
+          <div class="tr-row"><span class="tr-key">Recommended</span><span class="tr-val high">Escalate to senior mod</span></div>
+          <div class="tr-row"><span class="tr-key">Auto-resolve</span><span class="tr-val medium">No — manual review</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5: RESOLUTION ═══ -->
+  <div class="step" id="step-4">
+    <div class="step-inner">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">Moderator Review + Notifications</div>
+          <div class="step-sub">In-app toast, email dispatch, and moderator dashboard — dispute under active review</div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-status">
+            <span class="phone-time">16:21</span>
+            <div class="phone-icons"><span>●●●</span><span>WiFi</span><span>⬛</span></div>
+          </div>
+          <div class="phone-tabbar">
+            <div class="phone-tab active">Active</div>
+            <div class="phone-tab">Past</div>
+          </div>
+          <div class="in-app-toast">
+            <div class="toast-dot" style="background:#00883214;">✓</div>
+            <div>
+              <div class="toast-title">Dispute submitted — TKT-89421</div>
+              <div class="toast-body">Our P2P team is reviewing your case. You'll hear back within 24 hours.</div>
+              <div class="toast-time">Just now</div>
+            </div>
+          </div>
+          <div class="phone-body">
+            <div class="order-card">
+              <div class="card-top"><span class="tag tag-info">Complete payment</span><span class="timer">00:58:21</span></div>
+              <div class="order-amount"><span class="buy">Buy </span>5.00 USD</div>
+              <div class="order-meta">Farid07</div>
+            </div>
+            <div class="order-card" style="border-color:var(--tagWarnTx);">
+              <div class="card-top"><span class="tag tag-warn">Under Dispute</span><span style="font-size:10px;color:var(--textSub);">TKT-89421</span></div>
+              <div class="order-amount"><span class="buy">Buy </span>5.00 USD</div>
+              <div class="order-meta" style="margin-bottom:6px;">You pay: 443.87 INR · Rahul12</div>
+              <div class="dispute-banner"><span>⏳</span><div><div class="db-title">Under moderator review</div><div class="db-sub">Expected decision: within 24 hrs</div></div></div>
+              <button style="width:100%;height:32px;margin-top:7px;border-radius:16px;border:1px solid var(--border);background:transparent;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">View Dispute Details →</button>
+            </div>
+          </div>
+          <div class="phone-nav">
+            <div class="phone-nav-item"><span style="font-size:16px;">⌂</span><span class="nav-icon-label">Home</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">⇅</span><span class="nav-icon-label">Market</span></div>
+            <div class="phone-nav-item active"><span style="font-size:16px;">≡</span><span class="nav-icon-label">Orders</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">Ad</span><span class="nav-icon-label">My ads</span></div>
+            <div class="phone-nav-item"><span style="font-size:16px;">👤</span><span class="nav-icon-label">Profile</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mod-ticket" style="margin-bottom:14px;">
+        <div class="mod-header">
+          <div>
+            <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Moderator Dashboard — New Ticket</div>
+            <div class="mod-id">TKT-89421</div>
+            <div class="mod-sub">DSP-2026-001270078</div>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+            <span class="priority-pill">HIGH</span>
+            <span class="tag tag-warn">Under Review</span>
+          </div>
+        </div>
+        <div class="mod-grid">
+          <div class="mod-stat"><div class="mod-stat-k">Amount in Dispute</div><div class="mod-stat-v">5.00 USD / ₹443.87</div></div>
+          <div class="mod-stat"><div class="mod-stat-k">SLA Deadline</div><div class="mod-stat-v" style="color:var(--coral);">5 Mar 2026, 16:20 UTC</div></div>
+          <div class="mod-stat"><div class="mod-stat-k">Triage Score</div><div class="mod-stat-v" style="color:var(--coral);">0.87 — Valid (91%)</div></div>
+          <div class="mod-stat"><div class="mod-stat-k">Sentiment Flags</div><div class="mod-stat-v" style="color:#c47d00;font-size:11px;">Off-platform attempt 🚩</div></div>
+        </div>
+        <div class="mod-footer">
+          <div style="font-size:10px;font-weight:700;color:var(--textSub);margin-bottom:6px;">Evidence Attached</div>
+          <div class="ev-chips">
+            <div class="ev-chip">🧾 payment_receipt.pdf <span style="color:var(--buy);font-weight:700;"> OCR ✓</span></div>
+            <div class="ev-chip">💬 Chat logs auto-attached</div>
+            <div class="ev-chip">⚖ 3-way match: 3/5 pass</div>
+          </div>
+          <div class="mod-actions">
+            <button class="btn-resolve">✓ Resolve — Buyer</button>
+            <button class="btn-escalate">↑ Escalate</button>
+            <button class="btn-info">⋯ Request Info</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="email-wrap">
+        <div class="email-bar"><div class="email-bar-label">Email Notification — Buyer Receipt</div></div>
+        <div class="email-meta-row">
+          <div class="email-meta">From: disputes@deriv.com · To: buyer@email.com</div>
+          <div class="email-subject">Your dispute has been submitted — Ref: TKT-89421</div>
+        </div>
+        <div class="email-body">
+          <div class="email-brand"><span>deriv</span>P2P</div>
+          <div class="email-h1">Dispute Submitted</div>
+          <div class="email-p">Hi <strong>user_7821</strong>, your dispute for Order <strong>#1270078</strong> is now under review by our P2P team.</div>
+          <div class="email-box">
+            <div class="email-row"><span class="email-key">Ticket ID</span><span class="email-val">TKT-89421</span></div>
+            <div class="email-row"><span class="email-key">Order</span><span class="email-val">#1270078 · Buy 5.00 USD</span></div>
+            <div class="email-row"><span class="email-key">Reason</span><span class="email-val">Seller didn't release crypto</span></div>
+            <div class="email-row"><span class="email-key">Submitted</span><span class="email-val">4 Mar 2026, 16:20 UTC</span></div>
+            <div class="email-row"><span class="email-key">Resolution</span><span class="email-val" style="color:var(--coral);">Within 24 hours</span></div>
+          </div>
+          <div class="email-p">Our moderators are reviewing the evidence and chat logs. <strong>Do not cancel the order</strong> while the dispute is active.</div>
+          <button class="email-cta">Track Dispute Status →</button>
+          <div class="email-footer">© 2026 Deriv P2P · disputes@deriv.com · <u>Unsubscribe</u></div>
+        </div>
+      </div>
+
+      <!-- Final CTA area (inside step so it scrolls) -->
+      <div style="margin-top:24px;padding:20px;background:#fff;border-radius:12px;border:1px solid var(--border);text-align:center;">
+        <div style="font-size:32px;margin-bottom:10px;">✅</div>
+        <div style="font-size:16px;font-weight:800;color:var(--textHi);margin-bottom:6px;">Flow Complete</div>
+        <div style="font-size:12px;color:var(--textSub);margin-bottom:16px;">The dispute is now with the moderator team. SLA: 24 hours.</div>
+        <button onclick="goToStep(0)" style="height:40px;padding:0 24px;border-radius:20px;border:none;background:var(--coral);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;">↺ Restart Flow</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /stage -->
+
+<!-- FOOTER CTA -->
+<div class="footer-cta">
+  <span class="step-counter" id="stepCounter">Step 1 of 5</span>
+  <div style="display:flex;gap:8px;pointer-events:auto;">
+    <button class="btn-back" id="btnBack" onclick="navigate(-1)" disabled>← Back</button>
+    <button class="btn-next" id="btnNext" onclick="navigate(1)">Next Step →</button>
+  </div>
+</div>
+
+<script>
+const TOTAL = 5;
+let current = 0;
+
+function goToStep(n) {
+  if (n === current) return;
+  const from = document.getElementById('step-' + current);
+  const to   = document.getElementById('step-' + n);
+  const dir  = n > current ? 1 : -1;
+
+  from.classList.add('exit');
+  to.style.transform = `translateX(${dir * 40}px)`;
+  to.style.opacity = '0';
+
+  requestAnimationFrame(() => {
+    from.classList.remove('active');
+    to.classList.add('active');
+    requestAnimationFrame(() => {
+      to.style.transform = '';
+      to.style.opacity = '';
+      from.classList.remove('exit');
+      to.scrollTop = 0;
+    });
+  });
+
+  current = n;
+  updateChrome();
+}
+
+function navigate(dir) {
+  const next = current + dir;
+  if (next < 0 || next >= TOTAL) return;
+  goToStep(next);
+}
+
+function updateChrome() {
+  // Pills
+  document.querySelectorAll('.step-pill').forEach((p, i) => {
+    p.classList.remove('active', 'visited', 'done');
+    if (i === current) p.classList.add('active');
+    else if (i < current) { p.classList.add('visited', 'done'); }
+  });
+
+  // Counter
+  document.getElementById('stepCounter').textContent = `Step ${current + 1} of ${TOTAL}`;
+
+  // Buttons
+  document.getElementById('btnBack').disabled = current === 0;
+  const nextBtn = document.getElementById('btnNext');
+  if (current === TOTAL - 1) {
+    nextBtn.textContent = '↺ Restart';
+    nextBtn.onclick = () => goToStep(0);
+    nextBtn.classList.add('ghost');
+  } else {
+    const labels = ['', 'Upload Evidence', 'Submit Dispute', 'View Analysis', 'See Resolution', ''];
+    nextBtn.textContent = labels[current + 1] ? `${labels[current + 1]} →` : 'Next Step →';
+    nextBtn.onclick = () => navigate(1);
+    nextBtn.classList.remove('ghost');
+  }
+
+  // Scroll active pill into view
+  const activePill = document.querySelector('.step-pill.active');
+  if (activePill) activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// Pill nav clicks
+document.querySelectorAll('.step-pill').forEach((p, i) => {
+  p.addEventListener('click', () => goToStep(i));
+});
+
+// Swipe support
+let touchX = 0;
+document.querySelector('.stage').addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+document.querySelector('.stage').addEventListener('touchend', e => {
+  const diff = touchX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+}, { passive: true });
+
+function selectReason(idx) {
+  const opts = document.querySelectorAll('#reasonList .reason-option');
+  opts.forEach((o, i) => {
+    o.classList.toggle('selected', i === idx);
+    o.querySelector('.radio').classList.toggle('checked', i === idx);
+  });
+}
+
+// Init
+updateChrome();
+</script>
+</body>
+</html>

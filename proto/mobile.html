@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>P2P Dispute – Mobile</title>
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, -apple-system, sans-serif;
+    background: #f6f7f8;
+    width: 390px;
+    min-height: 844px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    height: 44px;
+    background: #181c25;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px 0;
+  }
+  .status-bar .time { color: #fff; font-size: 15px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons span { color: #fff; font-size: 12px; }
+
+  /* ── App header ── */
+  .app-header {
+    background: #181c25;
+    padding: 12px 24px 16px;
+  }
+  .tab-row { display: flex; gap: 24px; }
+  .tab { font-size: 16px; font-weight: 700; color: #ffffff7a; padding-bottom: 8px; cursor: pointer; }
+  .tab.active { color: #fff; border-bottom: 2px solid #ff444f; }
+
+  /* ── Order list ── */
+  .order-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+  .order-card {
+    background: #fff;
+    border: 1px solid #00000014;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; line-height: 20px;
+  }
+  .tag-info    { background: #2c9aff14; color: #0777c4; }
+  .tag-warning { background: #ff9c1314; color: #c47d00; }
+  .tag-success { background: #00883214; color: #007a22; }
+  .tag-danger  { background: #ff444f14; color: #ff444f; }
+  .timer { font-size: 12px; color: #0000007a; }
+  .order-amount { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .buy { color: #00c390; }
+  .sell { color: #de0040; }
+  .amount-text { color: #181c25; }
+  .order-meta { font-size: 14px; color: #0000007a; margin-bottom: 4px; }
+  .order-footer { display: flex; justify-content: space-between; align-items: center; }
+  .counterparty { font-size: 14px; color: #000000b8; }
+  .msg-icon { width: 24px; height: 24px; color: #0000007a; }
+
+  /* Dispute button on last card */
+  .btn-dispute {
+    width: 100%; height: 40px; margin-top: 10px;
+    border-radius: 16px;
+    border: 1.5px solid #ff444f;
+    background: transparent;
+    color: #ff444f;
+    font-size: 14px; font-weight: 700;
+    font-family: Inter, sans-serif;
+    cursor: pointer;
+  }
+
+  /* ── Filter row ── */
+  .filter-row {
+    display: flex; justify-content: flex-end;
+    padding: 0 24px 0; margin-bottom: 4px;
+  }
+  .filter-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 96px;
+    border: 1px solid #00000014;
+    background: #fff;
+    font-size: 14px; color: #000000b8;
+  }
+
+  /* ── Bottom sheet overlay ── */
+  .overlay {
+    position: fixed; inset: 0; background: #00000066; z-index: 10;
+  }
+  .bottom-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 11;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    max-height: 92dvh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 -4px 24px #0000001a;
+  }
+  .handle-bar-wrap { display: flex; justify-content: center; padding: 8px 0 4px; }
+  .handle-bar { width: 48px; height: 4px; border-radius: 96px; background: #0000003d; }
+
+  /* Sheet dark header */
+  .sheet-header {
+    background: #181c25; padding: 16px 24px 20px;
+  }
+  .sheet-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sheet-title { font-size: 20px; font-weight: 800; color: #fff; }
+  .close-btn { background: none; border: none; color: #ffffff7a; font-size: 18px; cursor: pointer; }
+  .order-summary {
+    display: flex; align-items: center; gap: 10px;
+    background: #ffffff0a; border-radius: 8px; padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+  .summary-type { font-size: 16px; font-weight: 700; }
+  .summary-amount { font-size: 16px; font-weight: 700; color: #fff; }
+  .summary-id { font-size: 12px; color: #ffffff7a; margin-left: auto; }
+  .order-sub { font-size: 14px; color: #ffffff7a; margin-bottom: 10px; }
+  .order-sub b { color: #ffffffb8; }
+
+  /* Sheet body */
+  .sheet-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .section-label {
+    font-size: 14px; font-weight: 700; color: #181c25; margin-bottom: 14px;
+  }
+  .reason-list { display: flex; flex-direction: column; gap: 8px; }
+  .reason-option {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border-radius: 8px;
+    border: 1.5px solid #00000014;
+    background: #f6f7f8; cursor: pointer;
+  }
+  .reason-option.selected {
+    border-color: #ff444f; background: #ff444f0a;
+  }
+  .radio {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid #0000001f; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .radio.checked { border-color: #ff444f; background: #ff444f; }
+  .radio.checked::after { content:''; width:6px; height:6px; border-radius:50%; background:#fff; }
+  .reason-label { font-size: 14px; font-weight: 700; color: #181c25; }
+  .reason-desc  { font-size: 12px; color: #0000007a; margin-top: 2px; }
+
+  .field-label { font-size: 14px; font-weight: 700; color: #181c25; margin: 18px 0 8px; }
+  textarea {
+    width: 100%; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid #00000014; background: #00000008;
+    font-size: 14px; line-height: 20px; font-family: Inter, sans-serif;
+    color: #000000b8; resize: none; outline: none;
+  }
+  textarea::placeholder { color: #0000004d; }
+  .field-hint { font-size: 12px; color: #0000007a; margin-top: 6px; }
+
+  /* Sheet footer */
+  .sheet-footer {
+    padding: 16px 24px; border-top: 1px solid #00000014;
+    display: flex; gap: 12px; background: #fff;
+  }
+  .btn-cancel {
+    flex: 1; height: 48px; border-radius: 24px;
+    border: 1px solid #0000001f; background: transparent;
+    color: #181c25; font-size: 16px; font-weight: 700;
+    font-family: Inter, sans-serif; cursor: pointer;
+  }
+  .btn-submit {
+    flex: 1; height: 48px; border-radius: 24px;
+    border: none; background: #ff444f;
+    color: #fff; font-size: 16px; font-weight: 700;
+    font-family: Inter, sans-serif; cursor: pointer;
+  }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 5;
+    height: 56px; background: #fff;
+    border-top: 1px solid #00000014;
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 16px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .nav-icon { font-size: 18px; color: #181c25; }
+  .nav-label { font-size: 11px; color: #181c25; }
+  .nav-item.active .nav-icon,
+  .nav-item.active .nav-label { color: #ff444f; }
+  .nav-divider { width: 1px; height: 32px; background: #00000014; }
+</style>
+</head>
+<body>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <span class="time">16:20</span>
+  <div class="icons">
+    <span>▲▲▲</span>
+    <span>WiFi</span>
+    <span>🔋</span>
+  </div>
+</div>
+
+<!-- App header with tabs -->
+<div class="app-header">
+  <div class="tab-row">
+    <div class="tab active">Active</div>
+    <div class="tab">Past</div>
+  </div>
+</div>
+
+<!-- Filter row -->
+<div style="padding: 12px 24px 0; display:flex; justify-content:flex-end;">
+  <div class="filter-chip">
+    <span>⛉</span> Filter <span>⌄</span>
+  </div>
+</div>
+
+<!-- Order list -->
+<div class="order-list">
+  <!-- Card 1 -->
+  <div class="order-card">
+    <div class="card-top">
+      <span class="tag tag-info">Complete payment</span>
+      <span class="timer">00:59:59</span>
+    </div>
+    <div class="order-amount"><span class="buy">Buy </span><span class="amount-text">5.00 USD</span></div>
+    <div class="order-meta">You pay: 83,833.75 IDR</div>
+    <div class="order-footer">
+      <span class="counterparty">Farid07</span>
+      <span style="font-size:20px; color:#0000007a;">💬</span>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="order-card">
+    <div class="card-top">
+      <span class="tag tag-info">Confirm payment</span>
+      <span class="timer">00:20:59</span>
+    </div>
+    <div class="order-amount"><span class="sell">Sell </span><span class="amount-text">5.00 USD</span></div>
+    <div class="order-meta">You receive: 14,500.00 IDR</div>
+    <div class="order-footer">
+      <span class="counterparty">Jackson</span>
+      <span style="font-size:20px; color:#0000007a;">💬</span>
+    </div>
+  </div>
+
+  <!-- Card 3 – dispute eligible -->
+  <div class="order-card">
+    <div class="card-top">
+      <span class="tag tag-warning">Waiting seller's confirmation</span>
+      <span class="timer">00:00:30</span>
+    </div>
+    <div class="order-amount"><span class="buy">Buy </span><span class="amount-text">5.00 USD</span></div>
+    <div class="order-meta">You pay: 443.87 INR</div>
+    <div class="order-footer">
+      <span class="counterparty">Rahul12</span>
+      <span style="font-size:20px; color:#0000007a;">💬</span>
+    </div>
+    <button class="btn-dispute">Raise a Dispute</button>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay"></div>
+
+<!-- Bottom sheet -->
+<div class="bottom-sheet">
+  <div class="handle-bar-wrap"><div class="handle-bar"></div></div>
+
+  <!-- Dark header -->
+  <div class="sheet-header">
+    <div class="sheet-title-row">
+      <span class="sheet-title">Raise a Dispute</span>
+      <button class="close-btn">✕</button>
+    </div>
+    <div class="order-summary">
+      <span class="summary-type buy">Buy</span>
+      <span class="summary-amount">5.00 USD</span>
+      <span class="summary-id">ID: 1270078</span>
+    </div>
+    <div class="order-sub">You pay: <b>443.87 INR</b> · Counterparty: <b>Rahul12</b></div>
+    <span class="tag tag-warning">Under Dispute</span>
+  </div>
+
+  <!-- Body -->
+  <div class="sheet-body">
+    <div class="section-label">What is your reason for raising a dispute?</div>
+    <div class="reason-list">
+      <div class="reason-option selected">
+        <div class="radio checked"></div>
+        <div>
+          <div class="reason-label">Seller didn't release crypto</div>
+          <div class="reason-desc">I've made the payment but seller hasn't released the funds</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Payment not received</div>
+          <div class="reason-desc">I haven't received the payment from the buyer</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Wrong payment amount</div>
+          <div class="reason-desc">The amount paid doesn't match the agreed order amount</div>
+        </div>
+      </div>
+      <div class="reason-option">
+        <div class="radio"></div>
+        <div>
+          <div class="reason-label">Other</div>
+          <div class="reason-desc">Describe your issue in the field below</div>
+        </div>
+      </div>
+    </div>
+    <div class="field-label">Additional details <span style="font-weight:400; color:#0000007a;">(optional)</span></div>
+    <textarea rows="4" placeholder="Describe the issue in detail…"></textarea>
+    <div class="field-hint">Your dispute will be reviewed by our P2P team within 24 hours.</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="sheet-footer">
+    <button class="btn-cancel">Cancel</button>
+    <button class="btn-submit">Raise Dispute</button>
+  </div>
+</div>
+
+</body>
+</html>

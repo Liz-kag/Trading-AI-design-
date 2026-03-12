@@ -800,15 +800,15 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
 
 // ─── STEP 5: Moderator Review + Notification ──────────────────────────────────
 function Step5({ onRestart }: { onRestart: () => void }) {
-  const [view, setView] = useState<"app" | "dashboard" | "email">("app");
+  const [view, setView] = useState<"app" | "email">("app");
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: font }}>
       {/* View switcher */}
       <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-        {(["app", "dashboard", "email"] as const).map(v => (
+        {(["app", "email"] as const).map(v => (
           <button key={v} onClick={() => setView(v)} style={{ flex: 1, padding: "9px 0", fontSize: 11, fontWeight: 700, border: "none", background: view === v ? C.coralLight : "transparent", color: view === v ? C.coral : C.textSub, borderBottom: view === v ? `2px solid ${C.coral}` : "2px solid transparent", cursor: "pointer", fontFamily: font, textTransform: "capitalize" }}>
-            {v === "app" ? "📱 In-App" : v === "dashboard" ? "🖥 Dashboard" : "📧 Email"}
+            {v === "app" ? "📱 In-App" : "📧 Email"}
           </button>
         ))}
       </div>
@@ -853,56 +853,6 @@ function Step5({ onRestart }: { onRestart: () => void }) {
             <button onClick={onRestart} style={{ width: "100%", height: 40, borderRadius: 20, border: `1px solid ${C.border}`, background: "transparent", fontSize: 13, fontWeight: 600, color: C.textSub, fontFamily: font, cursor: "pointer" }}>
               ↺ Restart Demo
             </button>
-          </div>
-        )}
-
-        {/* Moderator dashboard */}
-        {view === "dashboard" && (
-          <div style={{ padding: "12px 16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div>
-                <div style={{ fontSize: 10, color: C.textSub, textTransform: "uppercase", letterSpacing: 1 }}>MODERATOR DASHBOARD — NEW TICKET</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>TKT-89421 <span style={{ fontWeight: 400, fontSize: 12, color: C.textSub }}>DSP-2026-001270078</span></div>
-              </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <Tag label="HIGH" color={C.redText} bg={C.redBg} />
-                <Tag label="Under Review" color={C.orangeText} bg={C.orangeBg} />
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
-              <div style={{ padding: "10px 12px", background: C.frame, borderRadius: 8 }}>
-                <div style={{ fontSize: 10, color: C.textSub }}>Amount in Dispute</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>5.00 USD / ₹443.87</div>
-              </div>
-              <div style={{ padding: "10px 12px", background: C.coralLight, borderRadius: 8, border: `1px solid ${C.coral}` }}>
-                <div style={{ fontSize: 10, color: C.textSub }}>SLA Deadline</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.coral }}>5 Mar 2026, 16:20 UTC</div>
-              </div>
-              <div style={{ padding: "10px 12px", background: C.coralLight, borderRadius: 8 }}>
-                <div style={{ fontSize: 10, color: C.textSub }}>Triage Score</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.coral }}>0.87 — Valid (91%)</div>
-              </div>
-              <div style={{ padding: "10px 12px", background: C.orangeBg, borderRadius: 8 }}>
-                <div style={{ fontSize: 10, color: C.textSub }}>Sentiment Flags</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.orangeText }}>Off-platform attempt ▶</div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSub, marginBottom: 6 }}>Evidence Attached</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {["📄 payment_receipt.pdf OCR ✓", "💬 Chat logs auto-attached", "⚖️ 3-way match: 3/5 pass"].map((e, i) => (
-                  <span key={i} style={{ padding: "4px 8px", background: C.frame, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 10, color: C.text }}>{e}</span>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <button style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: C.green, color: C.white, fontSize: 12, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>✓ Resolve — Buyer</button>
-              <button style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: C.coral, color: C.white, fontSize: 12, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>↑ Escalate</button>
-              <button style={{ height: 40, padding: "0 12px", borderRadius: 10, border: `1px solid ${C.borderMid}`, background: "transparent", fontSize: 12, fontWeight: 700, color: C.textSub, fontFamily: font, cursor: "pointer" }}>Request Info</button>
-            </div>
           </div>
         )}
 

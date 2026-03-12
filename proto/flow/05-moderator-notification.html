@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Step 5 – Moderator Review + User Notification</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  body { width:1400px; min-height:960px; padding:40px; background:#f6f7f8; }
+  .page-header { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+  .step-num { width:40px; height:40px; border-radius:50%; background:var(--coral); color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .page-title { font-size:24px; font-weight:800; color:var(--textHi); }
+  .page-sub { font-size:14px; color:var(--textSub); margin-top:2px; }
+
+  .row { display:flex; gap:24px; align-items:flex-start; }
+
+  /* Phone with notification */
+  .phone { width:390px; background:#0d1017; border-radius:40px; overflow:hidden; box-shadow:0 24px 64px #00000033; flex-shrink:0; border:8px solid #0d1017; }
+
+  /* Updated order card */
+  .order-card-dispute {
+    background:#fff; border:1.5px solid var(--tagWarnTx);
+    border-radius:8px; padding:14px 16px;
+  }
+
+  /* In-app notification toast */
+  .in-app-toast {
+    margin:10px 14px; background:var(--dark); border-radius:12px;
+    padding:12px 14px; display:flex; align-items:flex-start; gap:10px;
+    box-shadow:0 4px 16px #00000044;
+  }
+  .toast-dot { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .toast-title { font-size:13px; font-weight:700; color:#fff; }
+  .toast-body { font-size:11px; color:#ffffff7a; margin-top:2px; line-height:1.4; }
+  .toast-time { font-size:10px; color:#ffffff4d; margin-top:4px; }
+
+  /* Right panels */
+  .panels { flex:1; display:flex; flex-direction:column; gap:18px; }
+  .panel { background:#fff; border-radius:12px; border:1px solid var(--border); padding:20px 22px; }
+  .panel-title { font-size:14px; font-weight:800; color:var(--textHi); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+  /* Moderator dashboard card */
+  .mod-ticket { background:var(--frame); border-radius:10px; padding:0; border:1.5px solid var(--coral); overflow:hidden; }
+  .mod-ticket-header { background:var(--dark); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .mod-ticket-id { font-family:monospace; font-size:13px; font-weight:700; color:#fff; }
+  .mod-ticket-body { padding:14px 16px; display:flex; flex-direction:column; gap:0; }
+  .mod-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .mod-row:last-child { border:none; }
+  .mod-key { color:var(--textSub); }
+  .mod-val { color:var(--textHi); font-weight:600; }
+  .mod-actions { display:flex; gap:8px; margin-top:12px; }
+  .btn-resolve   { flex:1; height:36px; border-radius:18px; border:none; background:var(--buy); color:#fff; font-size:13px; font-weight:700; font-family:Inter,sans-serif; cursor:pointer; }
+  .btn-escalate  { flex:1; height:36px; border-radius:18px; border:none; background:var(--coral); color:#fff; font-size:13px; font-weight:700; font-family:Inter,sans-serif; cursor:pointer; }
+  .btn-info      { flex:1; height:36px; border-radius:18px; border:1px solid var(--border); background:transparent; color:var(--textHi); font-size:13px; font-weight:700; font-family:Inter,sans-serif; cursor:pointer; }
+
+  /* Email preview */
+  .email-wrap { background:#f0f2f5; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .email-header { background:#fff; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .email-meta { font-size:12px; color:var(--textSub); margin-bottom:2px; }
+  .email-subject { font-size:14px; font-weight:700; color:var(--textHi); }
+  .email-body { padding:16px; }
+  .email-brand { font-size:16px; font-weight:800; margin-bottom:14px; }
+  .email-h1 { font-size:20px; font-weight:800; color:var(--textHi); margin-bottom:8px; }
+  .email-p { font-size:13px; color:var(--textDef); line-height:1.6; margin-bottom:10px; }
+  .email-highlight { background:#fff; border-radius:8px; padding:12px 14px; border:1px solid var(--border); margin:10px 0; }
+  .email-row { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; }
+  .email-key { color:var(--textSub); }
+  .email-val { color:var(--textHi); font-weight:600; }
+  .email-cta { display:block; margin:14px auto 0; padding:10px 24px; border-radius:22px; background:var(--coral); color:#fff; font-size:14px; font-weight:800; font-family:Inter,sans-serif; border:none; cursor:pointer; width:fit-content; }
+  .email-footer { font-size:11px; color:var(--textSub); text-align:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+
+  /* Evidence summary in moderator panel */
+  .ev-summary { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .ev-chip { display:flex; align-items:center; gap:6px; padding:5px 10px; border-radius:96px; background:var(--frame); border:1px solid var(--border); font-size:12px; color:var(--textDef); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="step-num">5</div>
+  <div>
+    <div class="page-title">Moderator Review + User Notifications</div>
+    <div class="page-sub">In-app notification, email dispatch, and moderator dashboard — dispute now under active review</div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Phone -->
+  <div class="phone">
+    <div style="background:#f6f7f8;">
+      <div class="status-bar">
+        <span class="time">16:21</span>
+        <div class="icons"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+      </div>
+      <div class="app-header">
+        <div class="tab-row">
+          <div class="tab active">Active</div>
+          <div class="tab">Past</div>
+        </div>
+      </div>
+
+      <!-- In-app toast notification -->
+      <div class="in-app-toast">
+        <div class="toast-dot" style="background:#00883214;">✓</div>
+        <div>
+          <div class="toast-title">Dispute submitted — TKT-89421</div>
+          <div class="toast-body">Our P2P team is reviewing your case. You'll hear back within 24 hours.</div>
+          <div class="toast-time">Just now</div>
+        </div>
+      </div>
+
+      <div style="padding:10px 16px; display:flex; flex-direction:column; gap:10px;">
+        <!-- Normal card -->
+        <div class="order-card">
+          <div class="card-top">
+            <span class="tag tag-info">Complete payment</span>
+            <span class="timer">00:58:21</span>
+          </div>
+          <div class="order-amount"><span class="buy">Buy </span><span class="amount-val">5.00 USD</span></div>
+          <div class="order-meta">Farid07</div>
+        </div>
+
+        <!-- Updated dispute card -->
+        <div class="order-card-dispute">
+          <div class="card-top">
+            <span class="tag tag-warn">Under Dispute</span>
+            <span style="font-size:12px;color:var(--textSub);">TKT-89421</span>
+          </div>
+          <div class="order-amount"><span class="buy">Buy </span><span class="amount-val">5.00 USD</span></div>
+          <div class="order-meta" style="margin-bottom:8px;">You pay: 443.87 INR · Rahul12</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#ff9c1314;border-radius:6px;">
+            <span style="font-size:14px;">⏳</span>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#c47d00;">Under moderator review</div>
+              <div style="font-size:11px;color:#c47d00;">Expected decision: within 24 hrs</div>
+            </div>
+          </div>
+          <button style="width:100%;height:36px;margin-top:10px;border-radius:18px;border:1px solid var(--border);background:transparent;font-size:13px;font-weight:700;color:var(--textDef);font-family:Inter,sans-serif;cursor:pointer;">View Dispute Details →</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></div>
+        <div style="width:1px;height:32px;background:var(--border);"></div>
+        <div class="nav-item"><span class="nav-icon">⇅</span><span class="nav-label">Market</span></div>
+        <div class="nav-item active"><span class="nav-icon">≡</span><span class="nav-label">Orders</span></div>
+        <div class="nav-item"><span class="nav-icon">Ad</span><span class="nav-label">My ads</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panels -->
+  <div class="panels">
+
+    <!-- Moderator dashboard ticket -->
+    <div class="panel" style="border-color:var(--coral);padding:0;overflow:hidden;">
+      <div style="background:var(--dark);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:11px;color:#ffffff7a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Moderator Dashboard — New Ticket</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;">TKT-89421 <span style="font-size:12px;color:#ffffff7a;font-family:monospace;">DSP-2026-001270078</span></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="priority-badge" style="padding:4px 12px;border-radius:96px;font-size:12px;font-weight:700;background:var(--tagDangBg);color:var(--tagDangTx);">HIGH</span>
+          <span class="tag tag-warn">Under Review</span>
+        </div>
+      </div>
+      <div style="padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="mod-row" style="flex-direction:column;align-items:flex-start;border:none;background:var(--frame);border-radius:6px;padding:8px 10px;">
+          <span class="mod-key" style="font-size:11px;margin-bottom:3px;">Amount in Dispute</span>
+          <span style="font-size:15px;font-weight:800;color:var(--textHi);">5.00 USD / ₹443.87</span>
+        </div>
+        <div class="mod-row" style="flex-direction:column;align-items:flex-start;border:none;background:var(--frame);border-radius:6px;padding:8px 10px;">
+          <span class="mod-key" style="font-size:11px;margin-bottom:3px;">SLA Deadline</span>
+          <span style="font-size:14px;font-weight:800;color:var(--coral);">5 Mar 2026, 16:20 UTC</span>
+        </div>
+        <div class="mod-row" style="flex-direction:column;align-items:flex-start;border:none;background:var(--frame);border-radius:6px;padding:8px 10px;">
+          <span class="mod-key" style="font-size:11px;margin-bottom:3px;">Triage Score</span>
+          <span style="font-size:15px;font-weight:800;color:var(--coral);">0.87 — Valid (91%)</span>
+        </div>
+        <div class="mod-row" style="flex-direction:column;align-items:flex-start;border:none;background:var(--frame);border-radius:6px;padding:8px 10px;">
+          <span class="mod-key" style="font-size:11px;margin-bottom:3px;">Sentiment Flags</span>
+          <span style="font-size:14px;font-weight:800;color:#c47d00;">Off-platform attempt 🚩</span>
+        </div>
+      </div>
+      <div style="padding:0 18px 16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--textSub);margin-bottom:8px;">Evidence Attached</div>
+        <div class="ev-summary">
+          <div class="ev-chip">🧾 payment_receipt.pdf <span style="color:var(--buy);font-weight:700;"> OCR ✓</span></div>
+          <div class="ev-chip">💬 Chat logs auto-attached</div>
+          <div class="ev-chip">⚖ 3-way match: 3/5 pass</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-resolve">✓ Resolve — Buyer</button>
+          <button class="btn-escalate">↑ Escalate</button>
+          <button class="btn-info">⋯ Request Info</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email preview -->
+    <div class="panel" style="padding:0;overflow:hidden;">
+      <div style="background:var(--dark);padding:10px 16px;">
+        <div style="font-size:11px;color:#ffffff7a;text-transform:uppercase;letter-spacing:.5px;">Email Notification — Buyer Receipt</div>
+      </div>
+      <div class="email-wrap" style="border:none;border-radius:0;">
+        <div class="email-header">
+          <div class="email-meta">From: disputes@deriv.com · To: buyer@email.com</div>
+          <div class="email-subject">Your dispute has been submitted — Ref: TKT-89421</div>
+        </div>
+        <div class="email-body">
+          <div class="email-brand"><span style="color:var(--coral);">deriv</span>P2P</div>
+          <div class="email-h1">Dispute Submitted</div>
+          <div class="email-p">Hi <b>user_7821</b>, your dispute for Order <b>#1270078</b> has been received and is now under review by our P2P team.</div>
+          <div class="email-highlight">
+            <div class="email-row"><span class="email-key">Ticket ID</span><span class="email-val">TKT-89421</span></div>
+            <div class="email-row"><span class="email-key">Order</span><span class="email-val">#1270078 · Buy 5.00 USD</span></div>
+            <div class="email-row"><span class="email-key">Reason</span><span class="email-val">Seller didn't release crypto</span></div>
+            <div class="email-row"><span class="email-key">Submitted</span><span class="email-val">4 Mar 2026, 16:20 UTC</span></div>
+            <div class="email-row"><span class="email-key">Expected resolution</span><span class="email-val" style="color:var(--coral);">Within 24 hours</span></div>
+          </div>
+          <div class="email-p">Our moderators are reviewing the evidence and chat logs. You may be contacted if additional information is required. <b>Do not cancel the order</b> while the dispute is active.</div>
+          <button class="email-cta">Track Dispute Status →</button>
+          <div class="email-footer">© 2026 Deriv P2P · disputes@deriv.com · <span style="text-decoration:underline;cursor:pointer;">Unsubscribe</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

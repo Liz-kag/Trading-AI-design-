@@ -434,6 +434,54 @@ function FindingsPanel({
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
 
+      {/* ── Moderator Ticket ── */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Moderator Dashboard — New Ticket</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>TKT-89421 <span style={{ fontWeight: 400, fontSize: 13, color: C.textSub }}>DSP-2026-001270078</span></div>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <Badge label="HIGH" color={C.coral} bg={C.coralLight} border={C.coralBorder} />
+            <Badge label="Under Review" color="#92400e" bg="#fef3c7" border="#fcd34d" />
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+          <div style={{ padding: "10px 14px", background: C.frame, borderRadius: 8, border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: 11, color: C.textSub, marginBottom: 3 }}>Amount in Dispute</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>5.00 USD / ₹443.87</div>
+          </div>
+          <div style={{ padding: "10px 14px", background: C.coralLight, borderRadius: 8, border: `1px solid ${C.coralBorder}` }}>
+            <div style={{ fontSize: 11, color: C.textSub, marginBottom: 3 }}>SLA Deadline</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.coral }}>5 Mar 2026, 16:20 UTC</div>
+          </div>
+          <div style={{ padding: "10px 14px", background: C.coralLight, borderRadius: 8, border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: 11, color: C.textSub, marginBottom: 3 }}>Triage Score</div>
+            {loading ? <Skeleton w="60%" h={12} mt={2} /> : <div style={{ fontSize: 15, fontWeight: 700, color: C.coral }}>{triage ? `${triage.risk_score.toFixed(2)} — Valid (${triage.claim_validity_pct}%)` : "0.87 — Valid (91%)"}</div>}
+          </div>
+          <div style={{ padding: "10px 14px", background: "#fffbeb", borderRadius: 8, border: `1px solid #fcd34d` }}>
+            <div style={{ fontSize: 11, color: C.textSub, marginBottom: 3 }}>Sentiment Flags</div>
+            {loading ? <Skeleton w="70%" h={12} mt={2} /> : <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}>{sentiment && sentiment.risk_flags.length > 0 ? `${sentiment.risk_flags[0]} ▶` : "Off-platform attempt ▶"}</div>}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Evidence Attached</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["📄 payment_receipt.pdf OCR ✓", "💬 Chat logs auto-attached", "⚖️ 3-way match: 3/5 pass"].map((e, i) => (
+              <span key={i} style={{ padding: "5px 10px", background: C.frame, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, color: C.text }}>{e}</span>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button style={{ flex: 1, height: 42, borderRadius: 10, border: "none", background: "#00c390", color: C.white, fontSize: 13, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>✓ Resolve — Buyer</button>
+          <button onClick={() => setShowEscalation(true)} style={{ flex: 1, height: 42, borderRadius: 10, border: "none", background: C.coral, color: C.white, fontSize: 13, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>↑ Escalate</button>
+          <button style={{ height: 42, padding: "0 16px", borderRadius: 10, border: `1px solid ${C.borderMid}`, background: "transparent", fontSize: 13, fontWeight: 700, color: C.textSub, fontFamily: font, cursor: "pointer" }}>Request Info</button>
+        </div>
+      </div>
+
       {/* ── Triage hero ── */}
       <div style={{ background: C.surface, border: `2px solid ${loading ? C.border : isHigh ? C.coral : C.greenBorder}`, borderRadius: 12, padding: "20px 24px", transition: "border-color 0.4s" }}>
         {loading ? (
