@@ -89,10 +89,10 @@ function SectionHead({ icon, title, badge }: { icon: string; title: string; badg
 }
 
 function AutoBadge() {
-  return <Badge label="Auto" color={C.blueText} bg={C.blueLight} />;
+  return <Badge label="Automated" color={C.blueText} bg={C.blueLight} />;
 }
 function AIBadge() {
-  return <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 7px", borderRadius: 4, background: C.dark, color: C.white, fontSize: 10, fontWeight: 700 }}>AI</span>;
+  return <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 7px", borderRadius: 4, background: C.dark, color: C.white, fontSize: 12, fontWeight: 700 }}>AI</span>;
 }
 
 // ─── Divider ───────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ function CaseFilePanel({ ocr, loading }: { ocr: AnalysisResult["ocr"] | null; lo
     <div style={{ width: 320, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0 }}>
       {/* ── Order summary ── */}
       <div style={{ background: C.dark, padding: "20px 20px 16px", borderRadius: "12px 12px 0 0" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#ffffff55", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Case File</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#ffffff55", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Case File</div>
         <div style={{ fontSize: 18, fontWeight: 800, color: C.white, marginBottom: 2 }}>Order #1270078</div>
         <div style={{ fontSize: 12, color: "#ffffff66", marginBottom: 14 }}>DSP-2026-001270078 · TKT-89421</div>
 
@@ -148,7 +148,7 @@ function CaseFilePanel({ ocr, loading }: { ocr: AnalysisResult["ocr"] | null; lo
             <div style={{ width: 28, height: 28, background: C.border, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>📄</div>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>payment_receipt.pdf</div>
-              <div style={{ fontSize: 10, color: C.textSub }}>248 KB · Scanned 2026-03-04 16:20:03</div>
+              <div style={{ fontSize: 12, color: C.textSub }}>248 KB · Scanned 2026-03-04 16:20:03</div>
             </div>
             {loading
               ? <div style={{ marginLeft: "auto", width: 10, height: 10, borderRadius: "50%", border: `2px solid ${C.border}`, borderTop: `2px solid ${C.blue}`, animation: "spin 0.8s linear infinite" }} />
@@ -201,7 +201,7 @@ function CaseFilePanel({ ocr, loading }: { ocr: AnalysisResult["ocr"] | null; lo
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: i < 1 ? `1px solid ${C.border}` : "none" }}>
               <span style={{ fontSize: 14 }}>{f.icon}</span>
               <span style={{ fontSize: 12, color: C.text, flex: 1 }}>{f.name}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: f.tagColor, background: f.tagBg, padding: "2px 6px", borderRadius: 4 }}>{f.tag}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: f.tagColor, background: f.tagBg, padding: "2px 6px", borderRadius: 4 }}>{f.tag}</span>
             </div>
           ))}
         </div>
@@ -216,7 +216,7 @@ function CaseFilePanel({ ocr, loading }: { ocr: AnalysisResult["ocr"] | null; lo
             {timelineEvents.map((e, i) => (
               <div key={i} style={{ position: "relative", marginBottom: 12 }}>
                 <div style={{ position: "absolute", left: -20, top: 3, width: 8, height: 8, borderRadius: "50%", background: e.flag ? C.coral : C.border, border: `2px solid ${e.flag ? C.coral : C.borderMid}` }} />
-                <div style={{ fontSize: 10, color: C.textLight, marginBottom: 1 }}>{e.time}</div>
+                <div style={{ fontSize: 12, color: C.textLight, marginBottom: 1 }}>{e.time}</div>
                 <div style={{ fontSize: 12, color: e.flag ? C.coral : C.textMid, fontWeight: e.flag ? 600 : 400 }}>{e.label}</div>
               </div>
             ))}
@@ -346,10 +346,10 @@ function EscalationModal({ ticketId, triageScore, onClose }: {
                   return (
                     <button key={r.id} onClick={() => toggleReason(r.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, border: `1.5px solid ${checked ? C.coral : C.border}`, background: checked ? C.coralLight : C.surface, cursor: "pointer", textAlign: "left", fontFamily: font, transition: "all 0.15s" }}>
                       <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${checked ? C.coral : C.borderMid}`, background: checked ? C.coral : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {checked && <span style={{ color: C.white, fontSize: 10, lineHeight: 1 }}>✓</span>}
+                        {checked && <span style={{ color: C.white, fontSize: 12, lineHeight: 1 }}>✓</span>}
                       </div>
                       <span style={{ fontSize: 13, color: C.text, flex: 1 }}>{r.label}</span>
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: r.severity === "critical" ? C.coralLight : r.severity === "high" ? C.orangeLight : C.blueLight, color: r.severity === "critical" ? C.coral : r.severity === "high" ? C.orangeText : C.blueText }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: r.severity === "critical" ? C.coralLight : r.severity === "high" ? C.orangeLight : C.blueLight, color: r.severity === "critical" ? C.coral : r.severity === "high" ? C.orangeText : C.blueText }}>
                         {r.severity}
                       </span>
                     </button>
@@ -368,7 +368,7 @@ function EscalationModal({ ticketId, triageScore, onClose }: {
                   return (
                     <button key={p} onClick={() => setPriority(p)} style={{ flex: 1, padding: "10px 8px", borderRadius: 8, border: `1.5px solid ${sel ? m.color : C.border}`, background: sel ? m.bg : C.surface, cursor: "pointer", fontFamily: font, transition: "all 0.15s" }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: sel ? m.color : C.textSub, textTransform: "capitalize" }}>{p}</div>
-                      <div style={{ fontSize: 10, color: sel ? m.color : C.textLight, marginTop: 2 }}>{p === "critical" ? "SLA 2 hrs" : p === "high" ? "SLA 4 hrs" : "SLA 24 hrs"}</div>
+                      <div style={{ fontSize: 12, color: sel ? m.color : C.textLight, marginTop: 2 }}>{p === "critical" ? "SLA 2 hrs" : p === "high" ? "SLA 4 hrs" : "SLA 24 hrs"}</div>
                     </button>
                   );
                 })}
@@ -438,7 +438,7 @@ function FindingsPanel({
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Moderator Dashboard — New Ticket</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Moderator Dashboard — New Ticket</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>TKT-89421 <span style={{ fontWeight: 400, fontSize: 13, color: C.textSub }}>DSP-2026-001270078</span></div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
@@ -535,9 +535,9 @@ function FindingsPanel({
                 { label: "Auto-resolve", value: triage.auto_resolve_eligible ? "Yes" : "No", sub: triage.auto_resolve_reason || "Manual review", color: C.orangeText, bg: C.orangeLight },
               ].map((s, i) => (
                 <div key={i} style={{ padding: "10px 12px", background: s.bg, borderRadius: 8 }}>
-                  <div style={{ fontSize: 10, color: C.textSub, marginBottom: 3 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: C.textSub, marginBottom: 3 }}>{s.label}</div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</div>
-                  {s.sub && <div style={{ fontSize: 10, color: C.textSub, marginTop: 2 }}>{s.sub}</div>}
+                  {s.sub && <div style={{ fontSize: 12, color: C.textSub, marginTop: 2 }}>{s.sub}</div>}
                 </div>
               ))}
             </div>
@@ -569,7 +569,7 @@ function FindingsPanel({
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 40px", gap: 12 }}>
               {["FIELD", "EXPECTED (ORDER)", "FOUND (RECEIPT)", ""].map((h, i) => (
-                <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5 }}>{h}</span>
+                <span key={i} style={{ fontSize: 12, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5 }}>{h}</span>
               ))}
             </div>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -585,7 +585,7 @@ function FindingsPanel({
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 40px", gap: 12, marginBottom: 8 }}>
               {["FIELD", "EXPECTED (ORDER)", "FOUND (RECEIPT)", ""].map((h, i) => (
-                <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 0.5 }}>{h}</span>
+                <span key={i} style={{ fontSize: 12, fontWeight: 700, color: C.textSub, textTransform: "uppercase", letterSpacing: 0.5 }}>{h}</span>
               ))}
             </div>
             {match.checks.map((ch, i) => (
@@ -752,7 +752,7 @@ function FindingsPanel({
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: C.frame, borderRadius: 8, border: `1px solid ${C.border}` }}>
               <span style={{ fontSize: 13, flexShrink: 0 }}>{s.icon}</span>
               <span style={{ fontSize: 12, color: C.textMid, flex: 1, lineHeight: 1.4 }}>{s.label}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: s.tagColor, background: s.tagBg, padding: "2px 7px", borderRadius: 20, flexShrink: 0, whiteSpace: "nowrap" }}>{s.tag}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: s.tagColor, background: s.tagBg, padding: "2px 7px", borderRadius: 20, flexShrink: 0, whiteSpace: "nowrap" }}>{s.tag}</span>
             </div>
           ))}
         </div>
@@ -762,7 +762,7 @@ function FindingsPanel({
       {triage && (
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button onClick={onRerun} style={{ padding: "8px 18px", borderRadius: 8, border: `1px solid ${C.border}`, background: "transparent", fontSize: 12, fontWeight: 600, color: C.textSub, fontFamily: font, cursor: "pointer" }}>
-            ↺ Re-run Analysis
+            Re-run AI Analysis
           </button>
         </div>
       )}
@@ -866,7 +866,7 @@ function ShareModal({ result, onClose }: { result: AnalysisResult | null; onClos
                 const m = TEAM_MEMBERS.find(x => x.id === id)!;
                 return (
                   <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0" }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: m.color, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>{m.avatar}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: m.color, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{m.avatar}</div>
                     <span style={{ fontSize: 12, color: C.text }}>{m.name}</span>
                     <span style={{ marginLeft: "auto", fontSize: 11, color: C.greenText, fontWeight: 700 }}>✓ Sent</span>
                   </div>
@@ -918,7 +918,7 @@ function ShareModal({ result, onClose }: { result: AnalysisResult | null; onClos
                             <div style={{ fontSize: 11, color: C.textSub }}>{m.role}</div>
                           </div>
                           <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${sel ? C.coral : C.borderMid}`, background: sel ? C.coral : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            {sel && <span style={{ color: C.white, fontSize: 10 }}>✓</span>}
+                            {sel && <span style={{ color: C.white, fontSize: 12 }}>✓</span>}
                           </div>
                         </button>
                       );
@@ -942,7 +942,7 @@ function ShareModal({ result, onClose }: { result: AnalysisResult | null; onClos
                             <div style={{ fontSize: 11, color: C.textSub }}>{ch.platform}</div>
                           </div>
                           <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${sel ? C.coral : C.borderMid}`, background: sel ? C.coral : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            {sel && <span style={{ color: C.white, fontSize: 10 }}>✓</span>}
+                            {sel && <span style={{ color: C.white, fontSize: 12 }}>✓</span>}
                           </div>
                         </button>
                       );
@@ -1087,8 +1087,8 @@ export default function AIAnalysisDashboard({ onBack }: Props) {
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {onBack && (
-            <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: C.textSub, padding: "4px 6px", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}>
-              ← <span style={{ fontSize: 12, fontWeight: 600 }}>Back to demo</span>
+            <button onClick={onBack} style={{ background: C.frame, border: `1px solid ${C.border}`, cursor: "pointer", fontSize: 13, fontWeight: 700, color: C.textMid, padding: "6px 14px", borderRadius: 8, display: "flex", alignItems: "center", gap: 6, fontFamily: font }}>
+              ← Back to demo
             </button>
           )}
           <div style={{ width: 1, height: 18, background: C.border }} />
@@ -1101,7 +1101,7 @@ export default function AIAnalysisDashboard({ onBack }: Props) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button onClick={() => setShowShare(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.surface, fontSize: 12, fontWeight: 700, color: C.text, fontFamily: font, cursor: "pointer" }}>
-            ↗ Share
+            Share Case
           </button>
           {loading && (
             <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 12px", borderRadius: 20, background: C.purpleLight, border: `1px solid ${C.purpleBorder}` }}>
@@ -1111,7 +1111,13 @@ export default function AIAnalysisDashboard({ onBack }: Props) {
               </span>
             </div>
           )}
-          {phase === "error" && <span style={{ fontSize: 12, color: C.coral }}>⚠️ {errMsg}</span>}
+          {phase === "error" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 12px", borderRadius: 8, background: C.coralLight, border: `1px solid ${C.coralBorder}` }}>
+              <span style={{ fontSize: 13, color: C.coral }}>⚠</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: C.coral }}>{errMsg}</span>
+              <button onClick={runAnalysis} style={{ marginLeft: 4, fontSize: 12, fontWeight: 700, color: C.coral, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: font, padding: 0 }}>Retry</button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -24,7 +24,7 @@ export default function App() {
             boxShadow: "0 4px 20px #7c3aed44",
           }}
         >
-          🤖 AI Dashboard
+          Open AI Dashboard
         </button>
       </div>
     </div>

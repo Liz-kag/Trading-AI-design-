@@ -357,10 +357,10 @@ function Step3({ onNext }: { onNext: () => void }) {
       <div style={{ display: "flex", gap: 4, marginBottom: 16, overflowX: "auto", paddingBottom: 4 }}>
         {steps.map((s, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-            <div style={{ padding: "4px 10px", borderRadius: 20, background: s.done ? C.coral : C.frame, border: `1px solid ${s.done ? C.coral : C.border}`, fontSize: 10, fontWeight: 700, color: s.done ? C.white : C.textSub, whiteSpace: "nowrap" }}>
+            <div style={{ padding: "4px 10px", borderRadius: 20, background: s.done ? C.coral : C.frame, border: `1px solid ${s.done ? C.coral : C.border}`, fontSize: 12, fontWeight: 700, color: s.done ? C.white : C.textSub, whiteSpace: "nowrap" }}>
               {i + 1} {s.label}
             </div>
-            {i < steps.length - 1 && <span style={{ color: C.textSub, fontSize: 10 }}>→</span>}
+            {i < steps.length - 1 && <span style={{ color: C.textSub, fontSize: 12 }}>→</span>}
           </div>
         ))}
       </div>
@@ -412,9 +412,9 @@ function Step3({ onNext }: { onNext: () => void }) {
             <span style={{ fontSize: 16 }}>{n.icon}</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: C.text }}>{n.to}</div>
-              <div style={{ fontSize: 10, color: C.textSub }}>{n.msg}</div>
+              <div style={{ fontSize: 12, color: C.textSub }}>{n.msg}</div>
             </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: n.color }}>{n.status}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: n.color }}>{n.status}</span>
           </div>
         ))}
       </div>
@@ -582,14 +582,14 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
 
         {phase === "thinking" && thinkingText && (
           <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", background: C.aiPurpleBg, borderRadius: 10, border: `1px solid ${C.aiPurple}33`, marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: C.aiPurple, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>💭 Thinking</div>
-            <div style={{ fontSize: 10, color: C.aiPurple, lineHeight: 1.6, whiteSpace: "pre-wrap", opacity: 0.85 }}>{thinkingText}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.aiPurple, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>💭 Thinking</div>
+            <div style={{ fontSize: 12, color: C.aiPurple, lineHeight: 1.6, whiteSpace: "pre-wrap", opacity: 0.85 }}>{thinkingText}</div>
           </div>
         )}
 
         {phase === "streaming" && (
           <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", background: C.frame, borderRadius: 10, marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: C.textSub, marginBottom: 6 }}>📋 Building result…</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.textSub, marginBottom: 6 }}>📋 Building result…</div>
             <pre style={{ fontSize: 9, color: C.textSub, whiteSpace: "pre-wrap", wordBreak: "break-all", margin: 0 }}>{rawBuffer}</pre>
           </div>
         )}
@@ -623,7 +623,7 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
         <div style={{ fontSize: 12, color: C.textSub, textAlign: "center", padding: "0 8px" }}>{errMsg}</div>
         <div style={{ fontSize: 11, color: C.textSub, background: C.frame, borderRadius: 8, padding: "8px 12px", textAlign: "center" }}>
           Make sure the API server is running:<br />
-          <code style={{ color: C.coral, fontSize: 10 }}>python3 api.py</code>
+          <code style={{ color: C.coral, fontSize: 12 }}>python3 api.py</code>
         </div>
         <button onClick={() => setPhase("idle")} style={{ padding: "10px 24px", borderRadius: 20, border: "none", background: C.coral, color: C.white, fontSize: 13, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
           Try Again
@@ -650,7 +650,7 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: priorityColor(r.triage.priority) }}>{r.triage.priority} PRIORITY · {r.triage.claim_validity_pct}% valid</div>
-          <div style={{ fontSize: 10, color: C.textSub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.summary}</div>
+          <div style={{ fontSize: 12, color: C.textSub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.summary}</div>
         </div>
         <Tag label={r.triage.priority} color={priorityColor(r.triage.priority)} bg={r.triage.priority === "HIGH" ? C.coralLight : C.greenBg} />
       </div>
@@ -658,7 +658,7 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
       {/* Tab bar */}
       <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ flex: 1, padding: "8px 0", fontSize: 10, fontWeight: 700, border: "none", background: activeTab === t.id ? C.coralLight : "transparent", color: activeTab === t.id ? C.coral : C.textSub, borderBottom: activeTab === t.id ? `2px solid ${C.coral}` : "2px solid transparent", cursor: "pointer", fontFamily: font }}>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ flex: 1, padding: "8px 0", fontSize: 12, fontWeight: 700, border: "none", background: activeTab === t.id ? C.coralLight : "transparent", color: activeTab === t.id ? C.coral : C.textSub, borderBottom: activeTab === t.id ? `2px solid ${C.coral}` : "2px solid transparent", cursor: "pointer", fontFamily: font }}>
             {t.icon} {t.label}
           </button>
         ))}
@@ -699,13 +699,13 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
               <Tag label="Auto" color={C.blueText} bg={C.blueBg} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 4, marginBottom: 8 }}>
-              {["Field", "Expected", "Found", ""].map((h, i) => <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.textSub }}>{h}</span>)}
+              {["Field", "Expected", "Found", ""].map((h, i) => <span key={i} style={{ fontSize: 12, fontWeight: 700, color: C.textSub }}>{h}</span>)}
             </div>
             {r.three_way_match.checks.map((ch, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 4, padding: "5px 0", borderBottom: i < r.three_way_match.checks.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                <span style={{ fontSize: 10, color: C.textSub }}>{ch.field}</span>
-                <span style={{ fontSize: 10, color: C.text }}>{ch.expected}</span>
-                <span style={{ fontSize: 10, color: C.text }}>{ch.found}</span>
+                <span style={{ fontSize: 12, color: C.textSub }}>{ch.field}</span>
+                <span style={{ fontSize: 12, color: C.text }}>{ch.expected}</span>
+                <span style={{ fontSize: 12, color: C.text }}>{ch.found}</span>
                 <span style={{ fontSize: 12 }}>{ch.passed ? "✓" : ch.warning ? "⚠️" : "✗"}</span>
               </div>
             ))}
@@ -742,7 +742,7 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: C.coral, marginBottom: 6 }}>🚩 Risk Flags Detected</div>
                 {r.sentiment.risk_flags.map((f, i) => (
-                  <div key={i} style={{ fontSize: 10, color: C.textMid, padding: "3px 0", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                  <div key={i} style={{ fontSize: 12, color: C.textMid, padding: "3px 0", display: "flex", gap: 6, alignItems: "flex-start" }}>
                     <span style={{ color: C.coral, flexShrink: 0 }}>●</span>{f}
                   </div>
                 ))}
@@ -777,8 +777,8 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
               ["Auto-resolve eligible", r.triage.auto_resolve_eligible ? "Yes" : "No — " + r.triage.auto_resolve_reason, r.triage.auto_resolve_eligible ? C.greenText : C.orangeText],
             ].map(([k, v, color], i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: i < 5 ? `1px solid ${C.border}` : "none", gap: 8 }}>
-                <span style={{ fontSize: 10, color: C.textSub, flexShrink: 0 }}>{k}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: color as string, textAlign: "right" }}>{v as string}</span>
+                <span style={{ fontSize: 12, color: C.textSub, flexShrink: 0 }}>{k}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: color as string, textAlign: "right" }}>{v as string}</span>
               </div>
             ))}
           </div>
@@ -791,7 +791,7 @@ function Step4({ onNext, dispute }: { onNext: () => void; dispute: DisputeState 
           ↺ Re-run
         </button>
         <button onClick={onNext} style={{ flex: 1, height: 40, borderRadius: 20, border: "none", background: C.coral, color: C.white, fontSize: 13, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
-          View Moderator Dashboard →
+          Open AI Dashboard →
         </button>
       </div>
     </div>
@@ -823,7 +823,7 @@ function Step5({ onRestart }: { onRestart: () => void }) {
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: C.white }}>Dispute submitted — TKT-89421</div>
                 <div style={{ fontSize: 11, color: "#ffffff99", marginTop: 2 }}>Our P2P team is reviewing your case. You'll hear back within 24 hours.</div>
-                <div style={{ fontSize: 10, color: "#ffffff55", marginTop: 4 }}>Just now</div>
+                <div style={{ fontSize: 12, color: "#ffffff55", marginTop: 4 }}>Just now</div>
               </div>
             </div>
 
@@ -842,7 +842,7 @@ function Step5({ onRestart }: { onRestart: () => void }) {
                 <span style={{ fontSize: 14 }}>🔍</span>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: C.coral }}>Under moderator review</div>
-                  <div style={{ fontSize: 10, color: C.textSub }}>Expected decision: within 24 hrs</div>
+                  <div style={{ fontSize: 12, color: C.textSub }}>Expected decision: within 24 hrs</div>
                 </div>
               </div>
               <button style={{ width: "100%", marginTop: 10, height: 36, borderRadius: 10, border: `1px solid ${C.borderMid}`, background: "transparent", fontSize: 12, fontWeight: 700, color: C.text, fontFamily: font, cursor: "pointer" }}>
@@ -851,7 +851,7 @@ function Step5({ onRestart }: { onRestart: () => void }) {
             </div>
 
             <button onClick={onRestart} style={{ width: "100%", height: 40, borderRadius: 20, border: `1px solid ${C.border}`, background: "transparent", fontSize: 13, fontWeight: 600, color: C.textSub, fontFamily: font, cursor: "pointer" }}>
-              ↺ Restart Demo
+              Restart from Step 1
             </button>
           </div>
         )}
@@ -887,7 +887,7 @@ function Step5({ onRestart }: { onRestart: () => void }) {
                 <p style={{ margin: "12px 0", fontSize: 11, color: C.textSub }}>Our moderators are reviewing the evidence and chat logs. You may be contacted if additional information is required. <b>Do not cancel the order</b> while the dispute is active.</p>
                 <button style={{ width: "100%", height: 40, borderRadius: 20, border: "none", background: C.coral, color: C.white, fontSize: 13, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>Track Dispute Status →</button>
               </div>
-              <div style={{ background: C.frame, padding: "10px 20px", textAlign: "center", fontSize: 10, color: C.textSub }}>
+              <div style={{ background: C.frame, padding: "10px 20px", textAlign: "center", fontSize: 12, color: C.textSub }}>
                 © 2026 Deriv P2P · disputes@deriv.com · Unsubscribe
               </div>
             </div>
