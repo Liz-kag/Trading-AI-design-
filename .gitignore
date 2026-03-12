@@ -16,3 +16,4 @@ dist/
 .env
 .env.local
 react-app/node_modules/
+.vercel
